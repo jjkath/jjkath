@@ -1,0 +1,9 @@
+title: "jjkath astrophotography"
+description: "Deep sky images, capture notes, and processing experiments from Santa Fe, New Mexico."
+baseurl: "/jjkath"
+url: "https://jjkath.github.io"
+markdown: kramdown
+theme: minima
+permalink: /:categories/:year/:month/:day/:title/
+plugins: []
+collections: []

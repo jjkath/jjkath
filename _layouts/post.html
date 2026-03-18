@@ -1,0 +1,52 @@
+---
+layout: default
+---
+<article class="post-page">
+  <section class="post-hero">
+    <div class="container">
+      <p class="eyebrow">{{ page.object_type | upcase }}</p>
+      <h1>{{ page.title }}</h1>
+      {% if page.subtitle %}<p class="lead narrow">{{ page.subtitle }}</p>{% endif %}
+      <div class="post-meta">
+        <span>{{ page.capture_date }}</span>
+        <span>{{ page.capture_time }}</span>
+        <span>{{ page.location }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section post-image-section">
+    <div class="container">
+      <figure class="post-image-frame">
+        <img class="lightbox-image" src="{{ page.image | relative_url }}" alt="{{ page.title }}" data-full="{{ page.image | relative_url }}">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container post-grid">
+      <aside class="capture-panel">
+        <h2>Capture data</h2>
+        <dl>
+          <dt>Target</dt><dd>{{ page.target_name }}</dd>
+          <dt>Catalog</dt><dd>{{ page.catalog }}</dd>
+          <dt>Telescope</dt><dd>{{ page.telescope }}</dd>
+          <dt>Exposure</dt><dd>{{ page.exposure }}</dd>
+          <dt>Date</dt><dd>{{ page.capture_date }}</dd>
+          <dt>Time</dt><dd>{{ page.capture_time }}</dd>
+          <dt>Location</dt><dd>{{ page.location }}</dd>
+          {% if page.processing_stage %}<dt>Processing</dt><dd>{{ page.processing_stage }}</dd>{% endif %}
+        </dl>
+      </aside>
+
+      <div class="post-content prose">
+        {{ content }}
+      </div>
+    </div>
+  </section>
+</article>
+
+<div id="lightbox" class="lightbox" aria-hidden="true">
+  <button class="lightbox-close" aria-label="Close image">×</button>
+  <img id="lightbox-img" alt="">
+</div>

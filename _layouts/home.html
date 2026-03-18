@@ -1,0 +1,73 @@
+---
+layout: default
+---
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">DEEP SKY ASTROPHOTOGRAPHY</p>
+      <h1>Galaxies, nebulae, and nights under Santa Fe skies.</h1>
+      <p class="lead">A curated journal of capture sessions, stacked exposures, and image processing experiments.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ '/gallery/' | relative_url }}">View gallery</a>
+        <a class="btn" href="#latest">Latest posts</a>
+      </div>
+    </div>
+    {% assign featured = site.posts | first %}
+    {% if featured and featured.image %}
+    <a class="hero-card" href="{{ featured.url | relative_url }}">
+      <img src="{{ featured.image | relative_url }}" alt="{{ featured.title }}">
+      <div class="hero-card-overlay">
+        <span class="pill">Featured</span>
+        <h2>{{ featured.title }}</h2>
+        <p>{{ featured.object_type }} · {{ featured.location }}</p>
+      </div>
+    </a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>Featured targets</h2>
+      <a href="{{ '/gallery/' | relative_url }}">See all</a>
+    </div>
+    <div class="gallery-grid">
+      {% for post in site.posts limit: 6 %}
+      <article class="card">
+        <a class="card-image-wrap" href="{{ post.url | relative_url }}">
+          <img class="card-image" src="{{ post.image | relative_url }}" alt="{{ post.title }}">
+        </a>
+        <div class="card-body">
+          <div class="meta-row">
+            <span class="pill">{{ post.object_type }}</span>
+            <span class="muted">{{ post.date | date: "%b %d, %Y" }}</span>
+          </div>
+          <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+          <p>{{ post.subtitle | default: post.excerpt | strip_html | truncate: 100 }}</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="latest" class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <h2>Latest posts</h2>
+    </div>
+    <div class="post-list">
+      {% for post in site.posts %}
+      <article class="post-list-item">
+        <div>
+          <p class="muted">{{ post.date | date: "%B %d, %Y" }}</p>
+          <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+          <p>{{ post.excerpt | strip_html | truncate: 180 }}</p>
+        </div>
+        <a class="btn btn-small" href="{{ post.url | relative_url }}">Open</a>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

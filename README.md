@@ -1,16 +1,15 @@
-## Hi there 👋
+# jjkath astrophotography blog upgrade
 
-<!--
-**jjkath/jjkath** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+This package is designed for a GitHub Pages **project site** at:
 
-Here are some ideas to get you started:
+`https://jjkath.github.io/jjkath/`
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+## Upload steps
+1. Unzip this package.
+2. Copy its contents into your repo root.
+3. Commit and push.
+4. In GitHub Pages settings, keep the source on your main branch root.
+
+## Notes
+- `_config.yml` includes `baseurl: "/jjkath"` for your current project-site URL.
+- If you later rename the repo to `jjkath.github.io`, remove the `baseurl` line or set it to `""`.
