@@ -1,0 +1,80 @@
+{
+  "m51": {
+    "captures": {
+      "1584": "1584-aligned.webp",
+      "1576": "1576-aligned.webp",
+      "1609": "1609-aligned.webp"
+    },
+    "default": [
+      "1576",
+      "1584"
+    ],
+    "width": 1210,
+    "height": 968
+  },
+  "m81": {
+    "captures": {
+      "1592": "1592-aligned.webp",
+      "1476": "1476-aligned.webp",
+      "1578": "1578-aligned.webp"
+    },
+    "default": [
+      "1476",
+      "1592"
+    ],
+    "width": 1800,
+    "height": 1028
+  },
+  "m82": {
+    "captures": {
+      "1480": "1480-aligned.webp",
+      "1577": "1577-aligned.webp",
+      "1602": "1602-aligned.webp"
+    },
+    "default": [
+      "1577",
+      "1480"
+    ],
+    "width": 1070,
+    "height": 764
+  },
+  "ngc2403": {
+    "captures": {
+      "ngc2403-export": "ngc2403-export-aligned.webp",
+      "1479": "1479-aligned.webp",
+      "1580": "1580-aligned.webp",
+      "1593": "1593-aligned.webp"
+    },
+    "default": [
+      "1479",
+      "ngc2403-export"
+    ],
+    "width": 1010,
+    "height": 808
+  },
+  "m97": {
+    "captures": {
+      "1704": "1704-aligned.webp",
+      "owl-export": "owl-export-aligned.webp",
+      "1595": "1595-aligned.webp"
+    },
+    "default": [
+      "owl-export",
+      "1704"
+    ],
+    "width": 1090,
+    "height": 872
+  },
+  "m101": {
+    "captures": {
+      "1706": "1706-aligned.webp",
+      "1585": "1585-aligned.webp"
+    },
+    "default": [
+      "1585",
+      "1706"
+    ],
+    "width": 1350,
+    "height": 1080
+  }
+}
