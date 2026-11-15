@@ -11,6 +11,8 @@
   const baseline = byId("baseline");
   const stage = byId("stage");
   const viewerFrame = byId("viewer-frame");
+  const compactFullScreen = matchMedia("(max-width: 680px), (max-height: 500px) and (pointer: coarse)");
+  const adjustmentPanel = byId("image-adjustments");
   const canvas = byId("adjusted");
   const nightImage = byId("night-image");
   const nightCanvas = byId("night-adjusted");
@@ -315,6 +317,28 @@
     const date = shortDate.format(new Date(currentCapture.date + "T12:00:00Z"));
     const duration = currentCapture.seconds ? " · " + currentCapture.seconds.toLocaleString("en-US") + " s" : "";
     byId("watermark-session").textContent = "Celestron Origin · " + date + duration;
+    const art = byId("watermark-art");
+    const url = currentCapture.watermark;
+    if (art.getAttribute("src") !== (url ?? null)) {
+      art.hidden = true;
+      stamp.classList.remove("has-artwork");
+      if (url) art.src = url;
+      else art.removeAttribute("src");
+    }
+  }
+
+  function toggleAdjustments(open, focus = false) {
+    const button = byId("toggle-adjustments");
+    adjustmentPanel.hidden = !open;
+    button.setAttribute("aria-expanded", String(open));
+    if (focus) (open ? byId("adjust-heading") : button).focus({preventScroll:open || !compactFullScreen.matches});
+  }
+
+  function showViewerTools(open) {
+    const button = byId("toggle-viewer-tools");
+    viewerFrame.classList.toggle("tools-open", open);
+    button.setAttribute("aria-expanded", String(open));
+    button.textContent = expanded ? (open ? "Hide controls" : "Controls") : (open ? "Less" : "More");
   }
 
   function loadDetail() {
@@ -374,8 +398,10 @@
     document.body.classList.toggle("viewer-expanded",enabled);
     const button = byId("fullscreen-image");
     byId("expand-capture").hidden = enabled;
-    button.setAttribute("aria-pressed",String(enabled));
-    button.textContent = enabled ? "Exit full screen" : "Full screen";
+    byId("toggle-adjustments").hidden = enabled;
+    button.hidden = !enabled;
+    if (wasExpanded !== enabled) showViewerTools(false);
+    if (enabled) toggleAdjustments(false);
     if (enabled) loadDetail();
     else {
       detailRequest++;
@@ -618,6 +644,10 @@
     const previousTarget = currentTarget;
     currentTarget = target;
     currentCapture = capture;
+    toggleAdjustments(false);
+    if (!expanded) showViewerTools(false);
+    const detail = capture.detail;
+    stage.style.setProperty("--frame-ratio", detail ? detail.width + " / " + detail.height : "1.79");
     usePrecision = false;
     precisionModel = null;
     precisionRequest++;
@@ -749,6 +779,13 @@
   }
   baseline.addEventListener("load",()=>{ syncCaptureTools(); queueRender(); });
   byId("expand-capture").addEventListener("click",toggleExpanded);
+  byId("toggle-adjustments").addEventListener("click",()=>toggleAdjustments(adjustmentPanel.hidden,true));
+  byId("close-adjustments").addEventListener("click",()=>toggleAdjustments(false,true));
+  byId("toggle-viewer-tools").addEventListener("click",()=>showViewerTools(!viewerFrame.classList.contains("tools-open")));
+  byId("watermark-art").addEventListener("load",()=>{
+    byId("watermark-art").hidden = false;
+    byId("watermark").classList.add("has-artwork");
+  });
   byId("show-details").addEventListener("click",openImageDetails);
   byId("show-watermark").addEventListener("click",()=>{
     showWatermark = !showWatermark;
@@ -759,9 +796,9 @@
     if (!viewerFrame.classList.contains("viewport-fill")) displayExpanded(document.fullscreenElement === viewerFrame);
   });
   document.addEventListener("keydown",event=>{
-    if (event.key === "Escape" && viewerFrame.classList.contains("viewport-fill") && !document.querySelector("dialog[open]")) {
-      displayExpanded(false);
-    }
+    if (event.key !== "Escape" || document.querySelector("dialog[open]")) return;
+    if (!adjustmentPanel.hidden) toggleAdjustments(false,true);
+    else if (viewerFrame.classList.contains("viewport-fill")) displayExpanded(false);
   });
   nightImage.addEventListener("load",queueRender);
   byId("tone-controls").addEventListener("toggle",queueRender);
@@ -830,7 +867,13 @@
   byId("zoom-fit").addEventListener("click",()=>setZoom(1));
   byId("zoom-in").addEventListener("click",()=>setZoom(zoom*1.4));
   stage.addEventListener("click",()=>{
-    if (!expanded && zoom <= 1 && !activeCompare && !compareNights) toggleExpanded();
+    if (!adjustmentPanel.hidden) {
+      toggleAdjustments(false);
+      return;
+    }
+    if (zoom > 1 || activeCompare || compareNights) return;
+    if (!expanded) toggleExpanded();
+    else if (compactFullScreen.matches) showViewerTools(!viewerFrame.classList.contains("tools-open"));
   });
   function moveDivider(clientX) {
     const bounds = stage.getBoundingClientRect();

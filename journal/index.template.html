@@ -63,7 +63,6 @@
           <h1 id="target-title" tabindex="-1"></h1>
         </div>
         <div class="target-meta">
-          <button id="expand-capture" type="button">Full screen</button>
           <button id="compare-nights" type="button" aria-pressed="false" hidden>Compare nights</button>
           <p id="target-count"></p>
         </div>
@@ -87,15 +86,20 @@
               <span id="before-label" class="before-label">Baseline</span><span id="after-label" class="after-label">Adjusted</span><span id="split-line" class="divider" aria-hidden="true"></span>
             </div>
             <div id="watermark" class="watermark" hidden>
+              <img id="watermark-art" alt="" hidden>
               <span id="watermark-object"></span>
               <span id="watermark-session"></span>
             </div>
           </div>
           <div class="stage-controls">
+            <button id="expand-capture" type="button">Full screen</button>
+            <button id="toggle-adjustments" type="button" aria-expanded="false" aria-controls="image-adjustments">Adjust image</button>
+            <button id="toggle-viewer-tools" type="button" aria-expanded="false" aria-controls="viewer-tools">More</button>
+            <button id="fullscreen-image" type="button" aria-label="Exit full screen" hidden>Exit</button>
+            <div class="viewer-tools" id="viewer-tools">
             <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
             <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
             <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
-            <button id="fullscreen-image" type="button" aria-pressed="false">Full screen</button>
             <a id="detail-file" class="detail-file" target="_blank" rel="noopener" hidden>Open full-resolution file</a>
             <button id="show-details" type="button" aria-haspopup="dialog">ⓘ Details</button>
             <button id="show-watermark" type="button" aria-pressed="false">Watermark</button>
@@ -105,6 +109,7 @@
             <button id="replay" type="button" hidden>Stack replay</button>
             <button id="share-view" type="button">Share view</button>
             <button id="night-split" type="button" hidden>Show split</button>
+            </div>
             <label id="compare-range" class="compare-range" hidden><span id="split-label" class="sr-only">Before and after divider</span>
               <input id="split" type="range" min="0" max="100" value="50">
             </label>
@@ -120,8 +125,14 @@
           </dialog>
         </div>
 
-        <aside class="adjust" aria-label="Image processing">
-          <div class="adjust-head"><h2>Adjust image</h2><button id="reset" class="text-button" type="button">Reset</button></div>
+        <aside id="image-adjustments" class="adjust" aria-labelledby="adjust-heading" hidden>
+          <div class="adjust-head">
+            <h2 id="adjust-heading" tabindex="-1">Adjust image</h2>
+            <div class="adjust-actions">
+              <button id="reset" class="text-button" type="button">Reset</button>
+              <button id="close-adjustments" class="text-button" type="button">Done</button>
+            </div>
+          </div>
           <button id="precision" class="precision" type="button" aria-pressed="false" hidden>16-bit source</button>
           <p id="precision-status" class="processing-hint" role="status" hidden></p>
           <div id="presets" class="presets" aria-label="Processing presets"></div>
