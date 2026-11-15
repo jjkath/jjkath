@@ -34,7 +34,7 @@ Captures appear under the same target automatically. A new comparison date requi
 
 ## Image and catalog data
 
-Full screen loads the full-resolution lossless file for each capture. Fit shows the entire frame, and zoom lets you inspect details. Details lists the megapixels, frame size, and source metadata. Watermark toggles the object, observing date, and known integration time as a viewer overlay. Open full-resolution file opens the image by itself.
+Full screen loads the full-resolution lossless file for each capture. Fit shows the entire frame, and zoom lets you inspect details. Adjust image opens the editing panel. On phones, full screen keeps the photo in view and the Controls button reveals the rest of the toolbar. Details lists the megapixels, frame size, and source metadata. Watermark toggles the object, observing date, and known integration time as a viewer overlay. Existing captures include finished watermark artwork rendered in Nasalization Regular by Typodermic Fonts. Captures without artwork use a live text overlay. Open full-resolution file opens the image by itself.
 
 Compare Nights uses the field shared by the aligned captures. The 16-bit adjustment view of Andromeda uses resampled data from the full-frame TIFF. Open full-resolution file gives the native-size 16-bit PNG. The histogram plots source brightness and the selected display curve.
 

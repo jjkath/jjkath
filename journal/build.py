@@ -2,6 +2,7 @@
 import argparse
 import base64
 from datetime import date
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -58,6 +59,12 @@ def read_posts(site):
         yield fields, note
 
 
+def watermark_file(post):
+    fields = ("title", "catalog_id", "capture_date", "integration_seconds")
+    stamp = json.dumps([post.get(key) for key in fields], ensure_ascii=False).encode("utf-8")
+    return f"{post['capture_id']}-{hashlib.sha256(stamp).hexdigest()[:12]}.webp"
+
+
 def read_catalog(site, asset_url):
     sky = json.loads((site / "sky_fields.json").read_text(encoding="utf-8"))
     precision = json.loads((site / "precision.json").read_text(encoding="utf-8"))
@@ -90,6 +97,9 @@ def read_catalog(site, asset_url):
             seconds=post.get("integration_seconds"), description=note,
             full=asset_url("images",post["image"]), thumb=asset_url("images",post["thumbnail"]),
         )
+        watermark = watermark_file(post)
+        if (site / "assets" / "watermarks" / watermark).is_file():
+            capture["watermark"] = asset_url("watermarks", watermark)
         if capture_id in sky:
             capture["sky"] = dict(sky[capture_id])
             survey = f"{capture_id}.webp"
@@ -128,11 +138,11 @@ def read_catalog(site, asset_url):
 
 def build(site, output, bundle=None):
     assets = site / "assets"
-    watermark_font = Path("fonts/zalando-sans-expanded-latin.woff2")
-    files = {watermark_font, Path("fonts/OFL-Zalando-Sans-Expanded.txt")}
+    files = set()
     derivatives_path = site / "web_derivatives.json"
     derivatives = json.loads(derivatives_path.read_text(encoding="utf-8")) if derivatives_path.is_file() else {}
-    kinds = {"images":(IMAGE,"image/webp"), "surveys":(IMAGE,"image/webp"), "replays":(REPLAY,"video/mp4"),"detail":(DETAIL,None),
+    kinds = {"images":(IMAGE,"image/webp"), "surveys":(IMAGE,"image/webp"), "watermarks":(IMAGE,"image/webp"),
+             "replays":(REPLAY,"video/mp4"),"detail":(DETAIL,None),
              "precision":(PRECISION,"application/octet-stream")}
 
     def asset_url(folder, filename):
@@ -147,12 +157,9 @@ def build(site, output, bundle=None):
 
     catalog = read_catalog(site, asset_url)
 
-    def render(targets, inline_font=False):
+    def render(targets):
         data = json.dumps(targets, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
         styles = (assets / "gallery.css").read_text(encoding="utf-8")
-        if inline_font:
-            encoded_font = base64.b64encode((assets / watermark_font).read_bytes()).decode("ascii")
-            styles = styles.replace(f"assets/{watermark_font.as_posix()}", f"data:font/woff2;base64,{encoded_font}")
         script = "\n".join((assets / name).read_text(encoding="utf-8") for name in ("image-processing.js","atlas.js","gallery.js"))
         html = (site / "index.template.html").read_text(encoding="utf-8")
         html = html.replace("<!-- styles -->", f"<style>\n{styles}</style>")
@@ -182,7 +189,7 @@ def build(site, output, bundle=None):
             asset_url(folder,filename)
             content = base64.b64encode((output / "assets" / folder / filename).read_bytes()).decode("ascii")
             return f"data:{kinds[folder][1]};base64," + content
-        bundle.write_text(render(read_catalog(site, embedded), inline_font=True), encoding="utf-8")
+        bundle.write_text(render(read_catalog(site, embedded)), encoding="utf-8")
     print(f"Built {len(catalog)} targets and {sum(len(t['captures']) for t in catalog)} captures in {output}")
 
 

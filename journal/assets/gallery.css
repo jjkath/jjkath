@@ -75,26 +75,21 @@ nav a:hover,.return:hover {color:var(--gold)}
 .about h2 {font-size:2.6rem}
 .about p {max-width:610px;color:var(--muted);margin-top:11px}
 .footer {display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-block:20px 28px;color:var(--muted);font-size:12px}
-.target-view {padding-block:27px 52px}
-.return {display:inline-block;color:var(--muted);font-size:13px;margin-bottom:18px}
-.target-heading {margin-bottom:17px}
-.target-heading h1 {font-size:clamp(2.9rem,5.4vw,5.2rem);line-height:.97;margin-top:6px}
-.viewer-layout {display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:16px;align-items:start}
-.stage {display:grid;position:relative;isolation:isolate;overflow:hidden;aspect-ratio:1.75;background:#05070a;border:1px solid var(--line);border-radius:9px;--split:50%}
+.target-view {width:min(1680px,calc(100% - 40px));padding-block:19px 52px}
+.return {display:inline-block;color:var(--muted);font-size:13px;margin-bottom:9px}
+.target-heading {margin-bottom:12px}
+.target-heading h1 {font-size:clamp(2.25rem,4.5vw,4.2rem);line-height:.97;margin-top:4px}
+.viewer-layout {position:relative}
+.stage {display:grid;position:relative;isolation:isolate;overflow:hidden;aspect-ratio:var(--frame-ratio,1.79);background:#05070a;border:1px solid var(--line);border-radius:9px;--split:50%}
 .stage.night-active {width:100%;max-height:min(62vh,600px)}
 .display-layer,.compare-overlay {position:absolute;inset:0;pointer-events:none}
 .display-layer > * {position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;transform-origin:50% 50%;will-change:transform}
 .stage.pannable {cursor:grab;touch-action:none}
 .stage.expandable {cursor:zoom-in}
-@font-face {
-  font-family:"Zalando Sans Expanded";
-  font-style:normal;
-  font-weight:500 600;
-  font-display:swap;
-  src:url("assets/fonts/zalando-sans-expanded-latin.woff2") format("woff2");
-}
-.watermark {position:absolute;left:var(--stamp-left,12px);bottom:var(--stamp-bottom,12px);max-width:calc(100% - var(--stamp-left,12px) - 12px);z-index:2;pointer-events:none;display:grid;gap:3px;border-left:2px solid #f3bd79;padding:5px 9px;background:#08090cce;color:#fff5e4;font:500 clamp(.70rem,1.46vw,.95rem)/1.35 "Zalando Sans Expanded",system-ui,sans-serif;letter-spacing:.02em}
-.watermark span:first-child {font-size:1.22em;font-weight:600;overflow-wrap:anywhere}
+.watermark {position:absolute;left:var(--stamp-left,12px);bottom:var(--stamp-bottom,12px);max-width:calc(100% - var(--stamp-left,12px) - 12px);z-index:2;pointer-events:none;display:grid;gap:2px;border-left:2px solid #f3bd79;padding:3px 7px;background:#08090caa;color:#fff5e4;font:500 clamp(.55rem,1.15vw,.74rem)/1.3 ui-monospace,monospace}
+#watermark-object {font-size:1.13em;font-weight:600;overflow-wrap:anywhere}
+.watermark.has-artwork span {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.watermark img {display:block;width:auto;max-width:100%;height:clamp(1.23rem,2.4vw,1.66rem);object-fit:contain;object-position:left center}
 .stage.panning {cursor:grabbing}
 .stage.compare-active:not(.pannable) {cursor:ew-resize;touch-action:pan-y}
 .stage.compare-active:not(.night-active) .adjusted-layer,.stage.night-active .night-layer {clip-path:inset(0 0 0 var(--split))}
@@ -104,10 +99,16 @@ nav a:hover,.return:hover {color:var(--gold)}
 .after-label {right:8px}
 .stage-controls {display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:8px}
 .stage-controls button {min-width:40px}
+.viewer-tools {display:none;flex-wrap:wrap;gap:7px;align-items:center;flex-basis:100%;order:2}
+#viewer-frame.tools-open .viewer-tools,#viewer-frame.expanded .viewer-tools {display:flex}
+.stage-controls #expand-capture {color:var(--gold);border-color:#b68957}
+.stage-controls #toggle-adjustments[aria-expanded="true"] {color:var(--gold);border-color:#b68957}
 .stage-controls .detail-file {border:1px solid var(--line);background:var(--panel);padding:8px 13px;border-radius:5px;min-height:39px;font-size:13px;display:inline-flex;align-items:center}
-#viewer-frame.expanded {background:#07090d;padding:6px;display:flex;flex-direction:column;min-width:0;min-height:0;box-sizing:border-box}
+#viewer-frame.expanded {position:relative;background:#07090d;padding:6px;display:flex;flex-direction:column;min-width:0;min-height:0;box-sizing:border-box}
 #viewer-frame.expanded .stage {flex:1;aspect-ratio:auto!important;min-height:0;max-height:none;width:100%}
 #viewer-frame.expanded .stage-controls {flex:none}
+#viewer-frame.expanded .viewer-tools {flex-basis:auto;order:0}
+#viewer-frame.expanded #toggle-viewer-tools {display:none}
 #viewer-frame.expanded .stage-controls .compare-range {max-width:220px}
 #viewer-frame.expanded.viewport-fill {position:fixed;inset:0;z-index:20;padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
 body.viewer-expanded {overflow:hidden}
@@ -123,8 +124,9 @@ body.viewer-expanded {overflow:hidden}
 .night-options p,.night-status {color:var(--muted);font-size:12px}
 .night-options p {grid-column:1/-1}
 .night-status {margin-top:6px}
-.adjust {border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:15px}
+.adjust {position:absolute;top:12px;right:12px;z-index:4;width:min(330px,calc(100% - 24px));max-height:calc(100% - 68px);overflow:auto;overscroll-behavior:contain;border:1px solid #65738a78;background:#141922e8;backdrop-filter:blur(14px);border-radius:9px;padding:14px;box-shadow:0 8px 24px #0006}
 .adjust-head {display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.adjust-actions {display:flex;gap:14px}
 .adjust h2,.capture-notes h2,.capture-strip h2 {font-weight:600;font-size:16px}
 .precision,.journal-dialog button {border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:7px 12px;min-height:39px;font-size:13px}
 .precision {margin-bottom:9px;color:var(--gold)}
@@ -180,16 +182,31 @@ input[type="range"],input[type="checkbox"] {accent-color:var(--gold)}
 .capture-choice span {display:block;font-size:11px;padding:7px 9px}
 .capture-choice[aria-current] {border-color:#bc9364;color:var(--gold)}
 @media (max-width:1020px) {.wide {width:calc(100% - 48px)} .hero-caption {right:24px}}
-@media (max-width:790px) {.cards {grid-template-columns:repeat(2,minmax(0,1fr))}.viewer-layout,.capture-notes {grid-template-columns:1fr}.capture-notes dl {grid-template-columns:100px 1fr}.presets {display:flex;flex-wrap:wrap}.presets button {padding-inline:12px}}
+@media (max-width:790px) {.cards {grid-template-columns:repeat(2,minmax(0,1fr))}.capture-notes {grid-template-columns:1fr}.capture-notes dl {grid-template-columns:100px 1fr}}
 @media (max-width:510px) {
   .wide {width:calc(100% - 30px)} .masthead-inner {min-height:59px} .brand {gap:7px;font-size:13px} .brand-mark {width:27px;height:27px;font-size:16px} nav {gap:13px;font-size:12px}
   .hero {min-height:420px} .hero-inner {padding-block:45px 88px} .hero h1 {font-size:clamp(2.55rem,10vw,3.65rem)} .hero-caption {right:15px;bottom:14px} .hero::before {background:linear-gradient(90deg,#090c13f2,#090c1380 85%),linear-gradient(0deg,#080a11c8,transparent 30%)}
   .catalog {padding-block:34px}.section-heading {align-items:stretch;flex-direction:column}.cards {gap:9px}.card-body {display:block;padding:9px}.card h3 {font-size:13px}.card-count {margin-top:3px;display:block}.filters {gap:6px}.filters button {padding-inline:10px;min-height:35px}
-  .target-view {padding-top:17px}.target-heading {flex-wrap:wrap}.stage {border-radius:6px}
+  .target-view {width:100%;padding-top:12px}.target-heading {flex-wrap:wrap;gap:7px}.target-heading h1 {font-size:clamp(2.05rem,8vw,3rem)}
+  .target-view .return,.target-heading,.capture-notes,.capture-strip {margin-inline:12px}
+  .target-view .stage {border-inline:0;border-radius:0}.target-view .night-options {margin-inline:8px}
+  #viewer-frame:not(.expanded) .stage-controls,#viewer-frame:not(.expanded) .night-status {margin-inline:10px}
 }
 @media (prefers-reduced-motion:reduce) {* {transition:none !important}}
-@media (max-width:1050px) and (orientation:portrait) {
-  .viewer-layout { grid-template-columns:1fr }
-  .presets {display:flex;flex-wrap:wrap}
-  .presets button {padding-inline:12px}
+@media (min-width:681px) and (min-height:510px) {
+  #viewer-frame:not(.expanded) .stage:not(.night-active) {max-height:max(300px,calc(100svh - 205px))}
+}
+@media (max-width:680px) {
+  .adjust {position:static;width:auto;max-height:none;margin:9px 10px 0;box-shadow:none}
+  .stage-controls button,.stage-controls .detail-file {min-height:43px}
+}
+@media (max-width:680px), (max-height:500px) and (pointer:coarse) {
+  #viewer-frame.expanded .stage-controls {position:absolute;z-index:5;inset:auto max(9px,env(safe-area-inset-right)) max(9px,env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));justify-content:space-between;pointer-events:none}
+  #viewer-frame.expanded #toggle-viewer-tools {display:inline-block}
+  #viewer-frame.expanded .stage-controls > button {pointer-events:auto;min-height:42px;background:#141922e8}
+  #viewer-frame.expanded .viewer-tools {display:none;order:-1;flex-basis:100%;max-height:38dvh;overflow:auto;pointer-events:auto;background:#141922eb;border:1px solid var(--line);border-radius:8px;padding:7px}
+  #viewer-frame.expanded.tools-open .viewer-tools {display:flex}
+  #viewer-frame.expanded .compare-range {background:#141922e8;flex:1 1 100%;padding:3px 9px;pointer-events:auto}
+  #viewer-frame.expanded:not(.tools-open) .compare-range,#viewer-frame.expanded:not(.tools-open) .night-options {display:none}
+  #viewer-frame.expanded .night-status {position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%)}
 }
