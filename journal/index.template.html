@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Deep-sky captures and observing notes from Santa Fe, New Mexico.">
+  <meta name="theme-color" content="#10131a">
+  <title>jjkath astrophotography</title>
+  <!-- styles -->
+</head>
+<body>
+  <a class="skip" href="#catalog">Skip to the gallery</a>
+  <header class="masthead">
+    <div class="wide masthead-inner">
+      <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true">✦</span><span>jjkath <span class="brand-sub">astrophotography</span></span></a>
+      <nav aria-label="Main navigation">
+        <a href="#catalog">Gallery</a>
+        <a href="#about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="home-view">
+    <section class="hero" aria-labelledby="home-title">
+      <img id="hero-image" alt="" fetchpriority="high">
+      <div class="wide hero-inner">
+        <p class="eyebrow">An observing journal from Santa Fe</p>
+        <h1 id="home-title">Deep sky,<br>from Santa Fe.</h1>
+        <p class="hero-copy">Galaxies, nebulae, and star clusters captured with the Celestron Origin.</p>
+        <div class="hero-actions">
+          <a class="primary" href="#catalog">Explore the gallery <span aria-hidden="true">↘</span></a>
+          <a class="secondary" href="#target/flaming-star/flaming-export">Open Flaming Star</a>
+        </div>
+      </div>
+      <p class="hero-caption">Flaming Star Nebula <span>IC 405 · March 13, 2026</span></p>
+    </section>
+
+    <section class="wide catalog" id="catalog" aria-labelledby="catalog-title" tabindex="-1">
+      <div class="section-heading">
+        <div><h2 id="catalog-title">The gallery</h2><p id="catalog-count"></p></div>
+        <label class="search"><span class="sr-only">Search targets by name or catalog ID</span><span aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="Search a target or catalog ID" autocomplete="off">
+        </label>
+      </div>
+      <div id="filters" class="filters" aria-label="Filter by object type"></div>
+      <p class="sr-only" id="result-count" role="status"></p>
+      <div id="cards" class="cards"></div>
+    </section>
+
+    <section class="wide about" id="about" aria-labelledby="about-title" tabindex="-1">
+      <h2 id="about-title">About this journal</h2>
+      <p>I use a Celestron Origin to photograph the night sky from Santa Fe, New Mexico. The gallery records the targets I’ve observed and lets you compare how different observing nights frame the same part of the sky.</p>
+      <p>Sky labels and positions adapted from <a href="https://github.com/mattiaverga/OpenNGC">OpenNGC</a> under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Selected star positions are from <a href="https://simbad.u-strasbg.fr/simbad/">SIMBAD</a> and <a href="https://archive.stsci.edu/hut/stars.html">MAST</a>.</p>
+    </section>
+  </main>
+
+  <main id="target-view" class="wide target-view" hidden>
+    <a class="return" href="#catalog">← Back to gallery</a>
+    <article aria-labelledby="target-title">
+      <div class="target-heading">
+        <div>
+          <p id="target-catalog" class="eyebrow"></p>
+          <h1 id="target-title" tabindex="-1"></h1>
+        </div>
+        <div class="target-meta">
+          <button id="compare-nights" type="button" aria-pressed="false" hidden>Compare nights</button>
+          <p id="target-count"></p>
+        </div>
+      </div>
+      <div class="viewer-layout">
+        <div>
+          <div id="night-options" class="night-options" aria-label="Compare observing nights" hidden>
+            <label class="field">Left capture <select id="night-left"></select></label>
+            <label class="field">Right capture <select id="night-right"></select></label>
+            <button id="night-blink" type="button" hidden>Blink</button>
+            <p>Aligned on the stars. Both nights use the same zoom and adjustments.</p>
+          </div>
+          <div id="stage" class="stage">
+            <div class="display-layer"><img id="baseline" alt=""></div>
+            <div class="display-layer adjusted-layer" id="adjusted-layer" hidden><canvas id="adjusted" aria-hidden="true"></canvas></div>
+            <div class="display-layer night-layer" id="night-layer" hidden>
+              <img id="night-image" alt=""><canvas id="night-adjusted" aria-hidden="true" hidden></canvas>
+            </div>
+            <div class="display-layer" id="sky-layer" hidden><svg id="object-overlay" aria-hidden="true"></svg></div>
+            <div id="compare-overlay" class="compare-overlay" hidden>
+              <span id="before-label" class="before-label">Baseline</span><span id="after-label" class="after-label">Adjusted</span><span id="split-line" class="divider" aria-hidden="true"></span>
+            </div>
+          </div>
+          <div class="stage-controls">
+            <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+            <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
+            <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+            <button id="compare" type="button" aria-pressed="false" disabled>Before / after</button>
+            <button id="objects" type="button" aria-pressed="false" hidden>Object labels</button>
+            <button id="sky-map" type="button" hidden>Sky map</button>
+            <button id="replay" type="button" hidden>Stack replay</button>
+            <button id="share-view" type="button">Share view</button>
+            <button id="night-split" type="button" hidden>Show split</button>
+            <label id="compare-range" class="compare-range" hidden><span id="split-label" class="sr-only">Before and after divider</span>
+              <input id="split" type="range" min="0" max="100" value="50">
+            </label>
+          </div>
+          <p id="night-status" class="night-status" role="status" hidden></p>
+          <p id="stage-status" class="sr-only" role="status"></p>
+          <p id="sky-status" class="sr-only" role="status"></p>
+        </div>
+
+        <aside class="adjust" aria-label="Image processing">
+          <div class="adjust-head"><h2>Adjust image</h2><button id="reset" class="text-button" type="button">Reset</button></div>
+          <button id="precision" class="precision" type="button" aria-pressed="false" hidden>16-bit source</button>
+          <p id="precision-status" class="processing-hint" role="status" hidden></p>
+          <div id="presets" class="presets" aria-label="Processing presets"></div>
+          <label id="palette-control" class="field" hidden>Palette
+            <select id="palette">
+              <option value="gold">Gold / Blue</option>
+              <option value="teal">Teal / Crimson</option>
+              <option value="violet">Violet / Copper</option>
+              <option value="inferno">Inferno</option>
+            </select>
+          </label>
+          <p class="processing-hint" id="processing-hint">Choose a preset to start.</p>
+          <div class="sliders structure-control">
+            <label for="structure">Structure strength <output id="structure-value" for="structure"></output></label>
+            <input type="range" id="structure" min="0" max="100" value="0">
+          </div>
+          <details id="tone-controls">
+            <summary>Histogram &amp; stretch</summary>
+            <canvas id="histogram" class="histogram" width="440" height="160" role="img" aria-label="Brightness histogram and stretch curve"></canvas>
+            <label class="field">Stretch curve
+              <select id="stretch">
+                <option value="power">Power</option>
+                <option value="asinh">Asinh</option>
+              </select>
+            </label>
+            <div class="sliders">
+              <label for="black">Black point <output id="black-value" for="black"></output></label>
+              <input type="range" id="black" min="0" max="30" step="0.1" value="0">
+              <label for="white">White point <output id="white-value" for="white"></output></label>
+              <input type="range" id="white" min="1" max="100" step="0.1" value="100">
+            </div>
+          </details>
+          <details id="fine-structure">
+            <summary>Fine adjustments</summary>
+            <label class="field">Detail scale
+              <select id="scale">
+                <option value="fine">Fine detail</option>
+                <option value="balanced" selected>Balanced</option>
+                <option value="broad">Broad clouds</option>
+              </select>
+            </label>
+            <div class="sliders">
+              <label for="midtone">Midtones <output id="midtone-value" for="midtone"></output></label>
+              <input type="range" id="midtone" min="-40" max="80" value="0">
+              <label for="saturation">Saturation <output id="saturation-value" for="saturation"></output></label>
+              <input type="range" id="saturation" min="0" max="200" value="100">
+              <label for="warm">Warmth <output id="warm-value" for="warm"></output></label>
+              <input type="range" id="warm" min="0" max="35" value="0">
+              <label for="smoothing">Background smoothing <output id="smoothing-value" for="smoothing"></output></label>
+              <input type="range" id="smoothing" min="0" max="100" value="0">
+              <label for="stars">Star reduction <output id="stars-value" for="stars"></output></label>
+              <input type="range" id="stars" min="0" max="100" value="0">
+              <label class="checkbox"><input type="checkbox" id="highlights" checked> Protect bright stars</label>
+            </div>
+          </details>
+        </aside>
+      </div>
+
+      <div class="capture-notes" id="single-notes">
+        <div><h2>Capture notes</h2><p id="capture-description"></p></div>
+        <dl id="capture-data"></dl>
+      </div>
+      <div class="capture-notes comparison-notes" id="night-notes" hidden></div>
+      <section class="capture-strip" id="capture-strip" aria-labelledby="captures-title">
+        <h2 id="captures-title"></h2><div id="capture-choices" class="capture-choices"></div>
+      </section>
+    </article>
+  </main>
+
+  <dialog class="journal-dialog" id="sky-dialog" aria-labelledby="map-title">
+    <div class="dialog-header"><h2 id="map-title">Sky map</h2><form method="dialog"><button aria-label="Close sky map">Close</button></form></div>
+    <div id="survey-view" class="survey-view">
+      <svg id="finder-chart" viewBox="0 0 540 350" role="img" aria-label="North-up finder chart showing the capture footprint"></svg>
+      <div id="aladin-view" hidden></div>
+    </div>
+    <div class="dialog-actions">
+      <button id="load-survey" type="button">Load sky survey</button>
+      <p id="map-status" role="status"></p>
+    </div>
+  </dialog>
+  <dialog class="journal-dialog" id="replay-dialog" aria-labelledby="replay-title">
+    <div class="dialog-header"><h2 id="replay-title">Stack replay</h2><form method="dialog"><button aria-label="Close stack replay">Close</button></form></div>
+    <video id="replay-video" controls playsinline preload="metadata"></video>
+    <p>The recording shows this capture building from successive exposures.</p>
+  </dialog>
+  <dialog class="journal-dialog share-dialog" id="share-dialog" aria-labelledby="share-title">
+    <div class="dialog-header"><h2 id="share-title">Share this view</h2><form method="dialog"><button aria-label="Close share view">Close</button></form></div>
+    <label for="view-link">Link to this capture and its settings</label>
+    <input id="view-link" type="url" readonly>
+    <div class="dialog-actions"><button id="copy-view" type="button">Copy link</button><p id="share-status" role="status"></p></div>
+  </dialog>
+
+  <footer class="wide footer"><span>jjkath astrophotography</span><span>Santa Fe, New Mexico</span></footer>
+  <noscript><p class="wide">Enable JavaScript to use the gallery and image viewer.</p></noscript>
+  <!-- scripts -->
+</body>
+</html>

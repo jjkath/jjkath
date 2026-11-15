@@ -1,0 +1,14 @@
+{
+  "andromeda-master": {
+    "file": "andromeda.rgb16",
+    "width": 1536,
+    "height": 868,
+    "black": 6.0,
+    "white": 20.0,
+    "offsets": [
+      -0.94,
+      0.3082,
+      0.0
+    ]
+  }
+}
