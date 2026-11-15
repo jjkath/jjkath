@@ -89,6 +89,7 @@ nav a:hover,.return:hover {color:var(--gold)}
 .stage.night-active {width:100%;max-height:min(62vh,600px)}
 .display-layer,.compare-overlay {position:absolute;inset:0;pointer-events:none}
 .display-layer > * {position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;transform-origin:50% 50%;will-change:transform}
+.stage {touch-action:pan-y}
 .stage.pannable {cursor:grab;touch-action:none}
 .stage.expandable {cursor:zoom-in}
 .watermark {position:absolute;left:var(--stamp-left,12px);top:var(--stamp-top,12px);width:max-content;max-width:var(--stamp-limit,calc(100% - 24px));z-index:2;pointer-events:none;display:grid;gap:2px;border-left:2px solid #f3bd79;padding:3px 7px;background:#08090caa;color:#fff5e4;font:500 var(--stamp-size,12px)/1.26 ui-monospace,monospace}
@@ -117,8 +118,14 @@ nav a:hover,.return:hover {color:var(--gold)}
 #viewer-frame.expanded #toggle-viewer-tools {display:none}
 #viewer-frame.expanded .stage-controls .compare-range {max-width:220px}
 #viewer-frame.expanded.viewport-fill {position:fixed;inset:0;z-index:20}
-#fullscreen-image {position:absolute;z-index:6;top:max(12px,calc(env(safe-area-inset-top) + 8px));right:max(12px,calc(env(safe-area-inset-right) + 8px));min-height:44px;padding:8px 13px;background:#10151ff5;border:1px solid #a7b1c3;border-radius:6px;color:var(--text);font-size:15px;font-weight:650;box-shadow:0 2px 10px #000a}
-#fullscreen-image:hover {background:#242d3a}
+#fullscreen-image,#toggle-clean-view {position:absolute;z-index:6;top:max(12px,calc(env(safe-area-inset-top) + 8px));min-height:44px;padding:8px 13px;background:#10151ff5;border:1px solid #a7b1c3;border-radius:6px;color:var(--text);font-size:15px;font-weight:650;box-shadow:0 2px 10px #000a}
+#fullscreen-image {right:max(12px,calc(env(safe-area-inset-right) + 8px))}
+#toggle-clean-view {left:max(12px,calc(env(safe-area-inset-left) + 8px))}
+#fullscreen-image:hover,#toggle-clean-view:hover {background:#242d3a}
+#viewer-frame.expanded .stage {touch-action:none}
+#viewer-frame.clean-view :is(.stage-controls,.night-options,.night-status,#sky-layer,#watermark,#before-label,#after-label) {display:none}
+#viewer-frame.clean-view #toggle-clean-view:not(:focus-visible) {clip-path:inset(50%)}
+#viewer-frame.original-preview :is(#adjusted-layer,#night-adjusted) {visibility:hidden}
 body.viewer-expanded {overflow:hidden}
 .compare-range {flex:1 1 160px;max-width:330px;margin-left:5px}
 .compare-range input {width:100%}
@@ -142,6 +149,8 @@ body.viewer-expanded {overflow:hidden}
 .histogram {display:block;width:100%;height:auto;margin-top:7px;background:#10151e;border:1px solid var(--line);border-radius:5px}
 #sky-layer {overflow:hidden}
 #object-overlay text,.finder-text {font-family:var(--sans);font-weight:600;fill:#ffe0ad;paint-order:stroke;stroke:#0a0d13;stroke-width:3;stroke-linejoin:round}
+#object-overlay text {--label-size:13px;font-size:calc(var(--label-size) / var(--overlay-zoom,1));stroke-width:calc(3px / var(--overlay-zoom,1))}
+#object-overlay .object-label {--label-size:16px}
 #object-overlay line,#object-overlay circle {stroke:#edc486;fill:none;stroke-width:1.4;vector-effect:non-scaling-stroke}
 .journal-dialog {width:min(680px,calc(100vw - 30px));max-height:90vh;padding:16px;border:1px solid var(--line);border-radius:12px;background:#171b24;color:var(--text)}
 .journal-dialog::backdrop {background:#04060be0}
@@ -240,8 +249,8 @@ input[type="range"],input[type="checkbox"] {accent-color:var(--gold)}
   #sky-dialog .dialog-header h2 {font-size:20px}
   #load-survey {width:100%}
   #finder-chart .finder-text {font-size:24px}
-  #object-overlay text {font-size:26px}
-  #object-overlay .object-label {font-size:34px}
+  #object-overlay text {--label-size:26px}
+  #object-overlay .object-label {--label-size:34px}
   .survey-view {height:auto;aspect-ratio:540/350}
   .survey-view:has(#aladin-view:not([hidden])) {height:clamp(165px,48dvh,390px);aspect-ratio:auto}
   #viewer-frame.expanded .stage-controls {position:absolute;z-index:5;inset:auto max(9px,calc(env(safe-area-inset-right) + 6px)) max(9px,calc(env(safe-area-inset-bottom) + 6px)) max(9px,calc(env(safe-area-inset-left) + 6px));pointer-events:none}
