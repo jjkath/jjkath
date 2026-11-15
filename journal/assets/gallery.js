@@ -79,6 +79,7 @@
   let preset = presets[0];
   let renderQueued = false;
   let activeCompare = false;
+  let previewOriginal = false;
   let compareNights = false;
   let blinkSide = null;
   let expanded = false;
@@ -92,6 +93,12 @@
   let panX = 0;
   let panY = 0;
   let drag = null;
+  const touches = new Map();
+  let pinch = null;
+  let multiTouch = false;
+  let lastTouchEnd = -Infinity;
+  let pendingTap = null;
+  let moved = false;
 
   function element(tag, className, value) {
     const node = document.createElement(tag);
@@ -180,7 +187,7 @@
   }
 
   function updateCompare() {
-    const splitVisible = activeCompare || compareNights;
+    const splitVisible = compareNights || (activeCompare && !previewOriginal);
     byId("compare").setAttribute("aria-pressed", String(activeCompare));
     byId("compare-nights").setAttribute("aria-pressed", String(compareNights));
     byId("compare-overlay").hidden = !splitVisible;
@@ -337,8 +344,10 @@
     const stageBox = stage.getBoundingClientRect();
     const {clientWidth:width, clientHeight:height} = stage;
     const {naturalWidth, naturalHeight} = baseline;
-    const scale = Math.min(width/naturalWidth,height/naturalHeight) * zoom;
-    const imageWidth = naturalWidth * scale;
+    const fitScale = Math.min(width/naturalWidth,height/naturalHeight);
+    const fittedWidth = naturalWidth * fitScale;
+    const scale = fitScale * zoom;
+    const imageWidth = fittedWidth * zoom;
     const imageHeight = naturalHeight * scale;
     const x = (width-imageWidth)/2 + panX;
     const y = (height-imageHeight)/2 + panY;
@@ -347,9 +356,8 @@
     const top = Math.max(0,y) + inset;
     const right = Math.min(width,x+imageWidth) - inset;
     const bottom = Math.min(height,y+imageHeight) - inset;
-    stamp.style.setProperty("--stamp-limit", Math.max(0,right-left) + "px");
-    // The object overlay uses a font-size of 16 in a 1,000-unit-wide viewBox.
-    stamp.style.setProperty("--stamp-size", Math.min(22,Math.max(11,imageWidth*.016)) + "px");
+    stamp.style.setProperty("--stamp-limit", Math.max(0,Math.min(right-left,fittedWidth-2*inset)) + "px");
+    stamp.style.setProperty("--stamp-size", Math.min(22,Math.max(11,fittedWidth*.016)) + "px");
     const box = stamp.getBoundingClientRect();
     const farX = Math.max(left,right-box.width);
     const farY = Math.max(top,bottom-box.height);
@@ -357,8 +365,8 @@
     const locations = [[left,farY],[farX,farY],[left,top],[farX,top],[middle,farY],[middle,top]];
     const obstacles = [
       ...(!byId("sky-layer").hidden ? skyOverlay.children : []),
-      ...(activeCompare ? [byId("before-label"),byId("after-label")] : []),
-      ...(expanded ? [byId("fullscreen-image")] : []),
+      ...(activeCompare && !previewOriginal ? [byId("before-label"),byId("after-label")] : []),
+      ...(expanded ? [byId("fullscreen-image"),byId("toggle-clean-view")] : []),
       ...(expanded && compactFullScreen.matches ? byId("toggle-viewer-tools").parentElement.querySelectorAll("button, a, input") : []),
     ].map(element=>element.getBoundingClientRect()).filter(rect=>rect.width>0 || rect.height>0);
     const score = ([localX,localY]) => {
@@ -387,6 +395,21 @@
     button.setAttribute("aria-expanded", String(open));
     button.textContent = expanded ? (open ? "Hide controls" : "Controls") : (open ? "Less" : "More");
     requestAnimationFrame(showZoom);
+  }
+
+  function setCleanView(enabled) {
+    viewerFrame.classList.toggle("clean-view",enabled);
+    const button = byId("toggle-clean-view");
+    button.setAttribute("aria-pressed",String(enabled));
+    requestAnimationFrame(showZoom);
+  }
+
+  function setOriginalPreview(enabled) {
+    previewOriginal = enabled;
+    byId("preview-original").setAttribute("aria-pressed",String(enabled));
+    viewerFrame.classList.toggle("original-preview",enabled);
+    byId("compare").disabled = enabled || byId("adjusted-layer").hidden;
+    updateCompare();
   }
 
   function loadDetail() {
@@ -448,7 +471,12 @@
     byId("expand-capture").hidden = enabled;
     byId("toggle-adjustments").hidden = enabled;
     button.hidden = !enabled;
-    if (wasExpanded !== enabled) showViewerTools(false);
+    byId("toggle-clean-view").hidden = !enabled;
+    if (wasExpanded !== enabled) {
+      cancelTap();
+      setCleanView(false);
+      showViewerTools(false);
+    }
     if (enabled) toggleAdjustments(false);
     if (enabled) loadDetail();
     else {
@@ -651,12 +679,17 @@
     const palette = preset.id === "false" ? makePalette(byId("palette").value) : null;
     const visible = adjusted && renderAdjusted(baseline,canvas,settings,palette);
     byId("adjusted-layer").hidden = !visible;
-    byId("compare").disabled = !visible;
     if (!isAdjusted(settings) && !usePrecision) activeCompare = false;
     if (compareNights) {
       byId("night-layer").hidden = !nightImage.complete || !nightImage.naturalWidth;
       nightCanvas.hidden = !(adjusted && renderAdjusted(nightImage,nightCanvas,settings,palette));
     }
+    const canPreview = visible || (compareNights && !nightCanvas.hidden);
+    const previewButton = byId("preview-original");
+    if (!canPreview && previewOriginal && document.activeElement === previewButton) byId("adjust-heading").focus();
+    previewButton.disabled = !canPreview;
+    if (!canPreview && previewOriginal) setOriginalPreview(false);
+    byId("compare").disabled = !visible || previewOriginal;
     drawHistogram(settings);
     updateCompare();
   }
@@ -674,6 +707,7 @@
     panY = Math.max(-limitY,Math.min(limitY,panY));
     const transform = "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")";
     for (const layer of [baseline,canvas,nightImage,nightCanvas,skyOverlay]) layer.style.transform = transform;
+    skyOverlay.style.setProperty("--overlay-zoom",zoom);
     stage.classList.toggle("pannable",zoom>1);
     stage.classList.toggle("expandable",!expanded && zoom <= 1 && !activeCompare && !compareNights);
     updateWatermark();
@@ -682,8 +716,14 @@
     byId("zoom-fit").textContent = zoom > 1 ? Math.round(zoom * 100) + "%" : "Fit";
   }
 
-  function setZoom(next) {
-    zoom = Math.min(4, Math.max(1,next));
+  function setZoom(next, {anchor,destination=anchor,fromZoom=zoom,fromX=panX,fromY=panY}={}) {
+    const newZoom = Math.min(4, Math.max(1,next));
+    if (anchor) {
+      const ratio = newZoom / fromZoom;
+      panX = destination.x - (anchor.x-fromX)*ratio;
+      panY = destination.y - (anchor.y-fromY)*ratio;
+    }
+    zoom = newZoom;
     showZoom();
     byId("stage-status").textContent = "Image zoom " + Math.round(zoom*100) + " percent";
   }
@@ -692,6 +732,8 @@
     const previousTarget = currentTarget;
     currentTarget = target;
     currentCapture = capture;
+    cancelTap();
+    setOriginalPreview(false);
     toggleAdjustments(false);
     if (!expanded) showViewerTools(false);
     const detail = capture.detail;
@@ -830,6 +872,7 @@
   baseline.addEventListener("load",()=>{ syncCaptureTools(); queueRender(); });
   byId("expand-capture").addEventListener("click",toggleExpanded);
   byId("toggle-adjustments").addEventListener("click",()=>toggleAdjustments(adjustmentPanel.hidden,true));
+  byId("preview-original").addEventListener("click",()=>setOriginalPreview(!previewOriginal));
   byId("close-adjustments").addEventListener("click",()=>toggleAdjustments(false,true));
   byId("toggle-viewer-tools").addEventListener("click",()=>showViewerTools(!viewerFrame.classList.contains("tools-open")));
   byId("watermark-art").addEventListener("load",()=>{
@@ -843,6 +886,7 @@
     updateWatermark();
   });
   byId("fullscreen-image").addEventListener("click",toggleExpanded);
+  byId("toggle-clean-view").addEventListener("click",()=>setCleanView(!viewerFrame.classList.contains("clean-view")));
   document.addEventListener("fullscreenchange",()=>{
     if (!viewerFrame.classList.contains("viewport-fill")) displayExpanded(document.fullscreenElement === viewerFrame);
   });
@@ -917,23 +961,71 @@
   byId("zoom-out").addEventListener("click",()=>setZoom(zoom/1.4));
   byId("zoom-fit").addEventListener("click",()=>setZoom(1));
   byId("zoom-in").addEventListener("click",()=>setZoom(zoom*1.4));
-  stage.addEventListener("click",()=>{
+  function activateStage() {
     if (!adjustmentPanel.hidden) {
       toggleAdjustments(false);
       return;
     }
-    if (zoom > 1 || activeCompare || compareNights) return;
-    if (!expanded) toggleExpanded();
-    else if (compactFullScreen.matches) showViewerTools(!viewerFrame.classList.contains("tools-open"));
+    if (expanded) setCleanView(!viewerFrame.classList.contains("clean-view"));
+    else if (zoom <= 1 && !stage.classList.contains("compare-active")) toggleExpanded();
+  }
+  stage.addEventListener("click",event=>{
+    if (event.pointerType === "touch" || performance.now()-lastTouchEnd < 500 || moved) return;
+    activateStage();
   });
+  function cancelTap() {
+    if (pendingTap) clearTimeout(pendingTap.timer);
+    pendingTap = null;
+  }
+  function stagePoint(x,y) {
+    const bounds = stage.getBoundingClientRect();
+    return {x:x-bounds.left-bounds.width/2,y:y-bounds.top-bounds.height/2};
+  }
+  function touchPair() {
+    const [a,b] = touches.values();
+    return {
+      center:stagePoint((a.x+b.x)/2,(a.y+b.y)/2),
+      distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y))
+    };
+  }
+  function startPinch() {
+    const {center,distance} = touchPair();
+    pinch = {anchor:center,distance,fromZoom:zoom,fromX:panX,fromY:panY};
+  }
+  function touchTap(x,y) {
+    if (pendingTap && Math.hypot(x-pendingTap.x,y-pendingTap.y) <= 32) {
+      cancelTap();
+      setZoom(zoom > 1 ? 1 : 2,{anchor:stagePoint(x,y)});
+      return;
+    }
+    cancelTap();
+    pendingTap = {x,y,timer:setTimeout(()=>{
+      pendingTap = null;
+      activateStage();
+    },280)};
+  }
   function moveDivider(clientX) {
     const bounds = stage.getBoundingClientRect();
     byId("split").value = Math.round(100 * (clientX - bounds.left) / bounds.width);
     showSplit();
   }
   stage.addEventListener("pointerdown",(event)=>{
-    if (!event.isPrimary || (zoom <= 1 && !activeCompare && !compareNights)) return;
-    drag = {id:event.pointerId,x:event.clientX-panX,y:event.clientY-panY,divider:zoom <= 1};
+    const {pointerId,clientX,clientY} = event;
+    if (event.pointerType === "touch") {
+      touches.set(pointerId,{x:clientX,y:clientY,startX:clientX,startY:clientY});
+      if (touches.size >= 2) {
+        multiTouch = true;
+        cancelTap();
+        drag = null;
+        stage.classList.remove("panning");
+        if (touches.size === 2) startPinch();
+        return;
+      }
+    }
+    const divider = zoom <= 1 && stage.classList.contains("compare-active");
+    moved = false;
+    if (!event.isPrimary || (zoom <= 1 && !divider)) return;
+    drag = {id:pointerId,x:clientX,y:clientY,panX,panY,divider};
     stage.setPointerCapture(event.pointerId);
     if (drag.divider) {
       moveDivider(event.clientX);
@@ -942,19 +1034,44 @@
     stage.classList.add("panning");
   });
   stage.addEventListener("pointermove",(event)=>{
+    const touch = touches.get(event.pointerId);
+    if (touch) {
+      touch.x = event.clientX;
+      touch.y = event.clientY;
+      if (pinch) {
+        const {center,distance} = touchPair();
+        setZoom(pinch.fromZoom*distance/pinch.distance,{...pinch,destination:center});
+        return;
+      }
+    }
     if (drag?.id !== event.pointerId) return;
+    const dx = event.clientX-drag.x;
+    const dy = event.clientY-drag.y;
+    if (Math.hypot(dx,dy)>7) moved = true;
     if (drag.divider) {
       moveDivider(event.clientX);
       return;
     }
-    panX = event.clientX-drag.x;
-    panY = event.clientY-drag.y;
+    panX = drag.panX+dx;
+    panY = drag.panY+dy;
     showZoom();
   });
   for (const type of ["pointerup","pointercancel","lostpointercapture"]) stage.addEventListener(type,(event)=>{
-    if (drag?.id !== event.pointerId) return;
-    drag = null;
-    stage.classList.remove("panning");
+    const touch = touches.get(event.pointerId);
+    if (touch) {
+      lastTouchEnd = performance.now();
+      if (!multiTouch && type === "pointerup" && !moved && Math.hypot(event.clientX-touch.startX,event.clientY-touch.startY)<=7) {
+        touchTap(event.clientX,event.clientY);
+      } else cancelTap();
+      touches.delete(event.pointerId);
+      if (touches.size >= 2) startPinch();
+      else pinch = null;
+      if (!touches.size) multiTouch = false;
+    }
+    if (drag?.id === event.pointerId) {
+      drag = null;
+      stage.classList.remove("panning");
+    }
   });
   window.addEventListener("resize",showZoom);
   window.addEventListener("hashchange",handleRoute);

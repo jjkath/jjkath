@@ -39,7 +39,7 @@ const skyAtlas = (() => {
       const y = object.y * h;
       const right = object.x < .74;
       items.push(node("circle",{cx:x,cy:y,r:8}));
-      items.push(node("text",{x:x + (right ? 13 : -13),y:y - 10,"font-size":16,"text-anchor":right ? "start" : "end",class:"object-label"},object.label));
+      items.push(node("text",{x:x + (right ? 13 : -13),y:y - 10,"text-anchor":right ? "start" : "end",class:"object-label"},object.label));
     }
     const x = 82;
     const y = h - 54;
@@ -48,13 +48,13 @@ const skyAtlas = (() => {
       const dx = Math.cos(radians);
       const dy = Math.sin(radians);
       items.push(node("line",{x1:x,y1:y,x2:x+29*dx,y2:y+29*dy}));
-      items.push(node("text",{x:x+43*dx,y:y+43*dy+4,"font-size":13,"text-anchor":"middle"},label));
+      items.push(node("text",{x:x+43*dx,y:y+43*dy+4,"text-anchor":"middle"},label));
     }
     const arcmin = current.width * 60 > 39 ? 10 : 5;
     const bar = w * arcmin / (60 * current.width);
     const start = w - 35 - bar;
     items.push(node("line",{x1:start,y1:h-26,x2:start+bar,y2:h-26}));
-    items.push(node("text",{x:start+bar/2,y:h-34,"font-size":13,"text-anchor":"middle"},arcmin + "′"));
+    items.push(node("text",{x:start+bar/2,y:h-34,"text-anchor":"middle"},arcmin + "′"));
     overlay.replaceChildren(...items);
   }
 
