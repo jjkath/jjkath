@@ -11,7 +11,7 @@
   const baseline = byId("baseline");
   const stage = byId("stage");
   const viewerFrame = byId("viewer-frame");
-  const compactFullScreen = matchMedia("(max-width: 680px), (max-height: 500px) and (pointer: coarse)");
+  const compactFullScreen = matchMedia("(max-width: 680px), (max-width: 950px) and (max-height: 500px)");
   const adjustmentPanel = byId("image-adjustments");
   const canvas = byId("adjusted");
   const nightImage = byId("night-image");
@@ -83,6 +83,7 @@
   let blinkSide = null;
   let expanded = false;
   let showWatermark = false;
+  let watermarkFrame = 0;
   let detailRequest = 0;
   let usePrecision = false;
   let precisionModel = null;
@@ -192,6 +193,7 @@
     stage.classList.toggle("night-active",compareNights);
     const split = blinkSide === "left" ? "100" : blinkSide === "right" ? "0" : byId("split").value;
     stage.style.setProperty("--split", split + "%");
+    queueWatermarkLayout();
   }
 
   function setImageSource(image, source, alt) {
@@ -306,12 +308,6 @@
     button.setAttribute("aria-pressed",String(showWatermark));
     stamp.hidden = !showWatermark || !currentCapture || compareNights || !baseline.naturalWidth;
     if (stamp.hidden) return;
-    const {naturalWidth, naturalHeight} = baseline;
-    const width = stage.clientWidth;
-    const height = stage.clientHeight;
-    const fit = Math.min(width/naturalWidth,height/naturalHeight) * zoom;
-    stamp.style.setProperty("--stamp-left",Math.max(8, 8+panX+(width-naturalWidth*fit)/2)+"px");
-    stamp.style.setProperty("--stamp-bottom",Math.max(8, 8-panY+(height-naturalHeight*fit)/2)+"px");
     const {name, catalog} = currentTarget;
     byId("watermark-object").textContent = name === catalog ? name : name + " / " + catalog;
     const date = shortDate.format(new Date(currentCapture.date + "T12:00:00Z"));
@@ -325,6 +321,57 @@
       if (url) art.src = url;
       else art.removeAttribute("src");
     }
+    queueWatermarkLayout();
+  }
+
+  function queueWatermarkLayout() {
+    if (!watermarkFrame && !byId("watermark").hidden) {
+      watermarkFrame = requestAnimationFrame(positionWatermark);
+    }
+  }
+
+  function positionWatermark() {
+    watermarkFrame = 0;
+    const stamp = byId("watermark");
+    if (stamp.hidden || !baseline.naturalWidth) return;
+    const stageBox = stage.getBoundingClientRect();
+    const {clientWidth:width, clientHeight:height} = stage;
+    const {naturalWidth, naturalHeight} = baseline;
+    const scale = Math.min(width/naturalWidth,height/naturalHeight) * zoom;
+    const imageWidth = naturalWidth * scale;
+    const imageHeight = naturalHeight * scale;
+    const x = (width-imageWidth)/2 + panX;
+    const y = (height-imageHeight)/2 + panY;
+    const inset = 9;
+    const left = Math.max(0,x) + inset;
+    const top = Math.max(0,y) + inset;
+    const right = Math.min(width,x+imageWidth) - inset;
+    const bottom = Math.min(height,y+imageHeight) - inset;
+    stamp.style.setProperty("--stamp-limit", Math.max(0,right-left) + "px");
+    // The object overlay uses a font-size of 16 in a 1,000-unit-wide viewBox.
+    stamp.style.setProperty("--stamp-size", Math.min(22,Math.max(11,imageWidth*.016)) + "px");
+    const box = stamp.getBoundingClientRect();
+    const farX = Math.max(left,right-box.width);
+    const farY = Math.max(top,bottom-box.height);
+    const middle = (left+farX)/2;
+    const locations = [[left,farY],[farX,farY],[left,top],[farX,top],[middle,farY],[middle,top]];
+    const obstacles = [
+      ...(!byId("sky-layer").hidden ? skyOverlay.children : []),
+      ...(activeCompare ? [byId("before-label"),byId("after-label")] : []),
+      ...(expanded ? [byId("fullscreen-image")] : []),
+      ...(expanded && compactFullScreen.matches ? byId("toggle-viewer-tools").parentElement.querySelectorAll("button, a, input") : []),
+    ].map(element=>element.getBoundingClientRect()).filter(rect=>rect.width>0 || rect.height>0);
+    const score = ([localX,localY]) => {
+      const a = stageBox.left + localX;
+      const b = stageBox.top + localY;
+      return obstacles.reduce((sum, rect)=>sum
+        + Math.max(0,Math.min(a+box.width+4,rect.right)-Math.max(a-4,rect.left))
+          * Math.max(0,Math.min(b+box.height+4,rect.bottom)-Math.max(b-4,rect.top)),0);
+    };
+    const ranked = locations.map(position=>({position, overlap:score(position)}));
+    const [stampX, stampY] = ranked.reduce((best, choice)=>choice.overlap<best.overlap ? choice : best).position;
+    stamp.style.setProperty("--stamp-left", stampX + "px");
+    stamp.style.setProperty("--stamp-top", stampY + "px");
   }
 
   function toggleAdjustments(open, focus = false) {
@@ -339,6 +386,7 @@
     viewerFrame.classList.toggle("tools-open", open);
     button.setAttribute("aria-expanded", String(open));
     button.textContent = expanded ? (open ? "Hide controls" : "Controls") : (open ? "Less" : "More");
+    requestAnimationFrame(showZoom);
   }
 
   function loadDetail() {
@@ -662,6 +710,7 @@
     byId("target-count").textContent = (target.captures.indexOf(capture)+1) + " of " + target.captures.length;
     renderCaptureNotes(target,capture);
     byId("home-view").hidden = true;
+    byId("home-masthead").hidden = true;
     byId("target-view").hidden = false;
     byId("compare-nights").hidden = !target.comparison;
     setNightMode(false);
@@ -687,6 +736,7 @@
     currentCapture = null;
     byId("target-view").hidden = true;
     byId("home-view").hidden = false;
+    byId("home-masthead").hidden = false;
     document.title = "jjkath astrophotography";
     const section = hash === "catalog" || hash === "about" ? byId(hash) : null;
     if (section) {
@@ -785,6 +835,7 @@
   byId("watermark-art").addEventListener("load",()=>{
     byId("watermark-art").hidden = false;
     byId("watermark").classList.add("has-artwork");
+    queueWatermarkLayout();
   });
   byId("show-details").addEventListener("click",openImageDetails);
   byId("show-watermark").addEventListener("click",()=>{

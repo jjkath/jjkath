@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Deep-sky captures and observing notes from Santa Fe, New Mexico.">
   <meta name="theme-color" content="#10131a">
   <title>jjkath astrophotography</title>
@@ -10,7 +10,7 @@
 </head>
 <body>
   <a class="skip" href="#catalog">Skip to the gallery</a>
-  <header class="masthead">
+  <header id="home-masthead" class="masthead">
     <div class="wide masthead-inner">
       <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true">✦</span><span>jjkath <span class="brand-sub">astrophotography</span></span></a>
       <nav aria-label="Main navigation">
@@ -55,18 +55,22 @@
   </main>
 
   <main id="target-view" class="wide target-view" hidden>
-    <a class="return" href="#catalog">← Back to gallery</a>
     <article aria-labelledby="target-title">
-      <div class="target-heading">
-        <div>
-          <p id="target-catalog" class="eyebrow"></p>
+      <header class="target-heading">
+        <nav class="capture-nav" aria-label="Post navigation">
+          <a class="capture-home" href="#home" aria-label="Astrophotography home"><span class="brand-mark" aria-hidden="true">✦</span></a>
+          <a href="#catalog"><span aria-hidden="true">←</span> Gallery</a>
+          <a href="#about">About</a>
+        </nav>
+        <div class="capture-title">
           <h1 id="target-title" tabindex="-1"></h1>
+          <p id="target-catalog" class="eyebrow"></p>
         </div>
         <div class="target-meta">
           <button id="compare-nights" type="button" aria-pressed="false" hidden>Compare nights</button>
           <p id="target-count"></p>
         </div>
-      </div>
+      </header>
       <div class="viewer-layout">
         <div id="viewer-frame">
           <div id="night-options" class="night-options" aria-label="Compare observing nights" hidden>
@@ -91,11 +95,11 @@
               <span id="watermark-session"></span>
             </div>
           </div>
+          <button id="fullscreen-image" type="button" hidden>Exit full screen</button>
           <div class="stage-controls">
             <button id="expand-capture" type="button">Full screen</button>
             <button id="toggle-adjustments" type="button" aria-expanded="false" aria-controls="image-adjustments">Adjust image</button>
             <button id="toggle-viewer-tools" type="button" aria-expanded="false" aria-controls="viewer-tools">More</button>
-            <button id="fullscreen-image" type="button" aria-label="Exit full screen" hidden>Exit</button>
             <div class="viewer-tools" id="viewer-tools">
             <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
             <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
@@ -209,9 +213,10 @@
       <div id="aladin-view" hidden></div>
     </div>
     <div class="dialog-actions">
-      <button id="load-survey" type="button">Load sky survey</button>
       <p id="map-status" role="status"></p>
+      <button id="load-survey" type="button">Load sky survey</button>
     </div>
+    <p id="map-coordinates"></p>
   </dialog>
   <dialog class="journal-dialog" id="replay-dialog" aria-labelledby="replay-title">
     <div class="dialog-header"><h2 id="replay-title">Stack replay</h2><form method="dialog"><button aria-label="Close stack replay">Close</button></form></div>

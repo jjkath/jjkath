@@ -7,12 +7,15 @@ const skyAtlas = (() => {
   const dialog = byId("sky-dialog");
   const chart = byId("finder-chart");
   const survey = byId("aladin-view");
+  const surveyButton = byId("load-survey");
+  const status = byId("map-status");
   let field = null;
   let labels = false;
   let surveyLoader = null;
   let map = null;
   let surveyHost = null;
   let mapRequest = 0;
+  let showingSurvey = false;
 
   const surveyMirrors = [
     {name:"MAST", url:"https://stpubdata.s3.us-east-1.amazonaws.com/mast/skybackgrounds/DSSColor"},
@@ -36,7 +39,7 @@ const skyAtlas = (() => {
       const y = object.y * h;
       const right = object.x < .74;
       items.push(node("circle",{cx:x,cy:y,r:8}));
-      items.push(node("text",{x:x + (right ? 13 : -13),y:y - 10,"font-size":16,"text-anchor":right ? "start" : "end"},object.label));
+      items.push(node("text",{x:x + (right ? 13 : -13),y:y - 10,"font-size":16,"text-anchor":right ? "start" : "end",class:"object-label"},object.label));
     }
     const x = 82;
     const y = h - 54;
@@ -79,25 +82,40 @@ const skyAtlas = (() => {
       stroke:"#efbd78","stroke-width":2,fill:"#edc48617"}));
     for (const obj of field.objects) {
       const [x,y] = project([obj.ra,obj.dec]);
+      const onRight = x > 370;
       layers.push(node("circle",{cx:x,cy:y,r:4,fill:"#fddeb6"}));
-      layers.push(node("text",{x:x+8,y:y-7,"font-size":12,class:"finder-text"},obj.label));
+      layers.push(node("text",{x:x+(onRight ? -9 : 9),y:y-8,"font-size":14,
+        "text-anchor":onRight ? "end" : "start",class:"finder-text"},obj.label));
     }
-    layers.push(node("text",{x:17,y:24,"font-size":12,class:"finder-text"},"N ↑   E ←"));
-    layers.push(node("text",{x:17,y:330,"font-size":12,class:"finder-text"},
-      "RA " + ra0.toFixed(3) + "°   Dec " + dec0.toFixed(3) + "°   ·   " + (60*field.width).toFixed(1) + "′ wide"));
+    layers.push(node("text",{x:17,y:32,"font-size":14,class:"finder-text"},"N ↑   E ←"));
     chart.replaceChildren(...layers);
     chart.setAttribute("aria-label","North-up finder chart showing the capture footprint");
-    byId("map-title").textContent = name + " · Sky map";
-    byId("map-status").textContent = "Gold outline shows the field of this capture.";
+    byId("map-coordinates").textContent = "RA " + ra0.toFixed(3) + "° · Dec " + dec0.toFixed(3) + "° · " + (60*field.width).toFixed(1) + "′ wide";
+  }
+
+  function showFinder() {
+    showingSurvey = false;
+    chart.querySelector("image")?.remove();
+    chart.setAttribute("aria-label","North-up finder chart showing the capture footprint");
+    chart.hidden = false;
+    survey.hidden = true;
+    surveyButton.removeAttribute("aria-disabled");
+    surveyButton.textContent = "Load sky survey";
+    status.textContent = "The gold outline marks your capture.";
+  }
+
+  function surveyReady(message) {
+    showingSurvey = true;
+    surveyButton.removeAttribute("aria-disabled");
+    surveyButton.textContent = "Show finder chart";
+    status.textContent = message;
   }
 
   function openMap(name) {
     if (!field) return;
-    chart.hidden = false;
-    survey.hidden = true;
-    byId("load-survey").hidden = false;
-    byId("load-survey").disabled = false;
+    byId("map-title").textContent = name + " · Sky map";
     finder(name);
+    showFinder();
     dialog.showModal();
   }
 
@@ -147,16 +165,20 @@ const skyAtlas = (() => {
     if (!dialog.open || token !== mapRequest) return false;
     chart.prepend(node("image",{href:frame.survey,width:540,height:350}));
     chart.setAttribute("aria-label","DSS2 survey showing the capture footprint");
-    byId("map-status").textContent = "DSS2 color from MAST. Gold outline shows your capture.";
+    surveyReady("DSS2 color from MAST. The gold outline marks your capture.");
     return true;
   }
 
-  byId("load-survey").addEventListener("click",async()=>{
+  surveyButton.addEventListener("click",async()=>{
+    if (surveyButton.getAttribute("aria-disabled") === "true") return;
+    if (showingSurvey) {
+      showFinder();
+      return;
+    }
     const token = ++mapRequest;
     const frame = field;
-    const button = byId("load-survey");
-    button.disabled = true;
-    byId("map-status").textContent = "Loading the Aladin Lite survey…";
+    surveyButton.setAttribute("aria-disabled","true");
+    status.textContent = "Loading the sky survey…";
     try {
       if (!document.createElement("canvas").getContext("webgl2")) {
         throw new Error("WebGL2 unavailable");
@@ -177,20 +199,16 @@ const skyAtlas = (() => {
       const outline = A.graphicOverlay({name:"Capture footprint",color:"#f7c57e",lineWidth:2});
       outline.add(A.polygon(frame.footprint,{color:"#f7c57e"}));
       map.addOverlay(outline);
-      button.hidden = true;
-      byId("map-status").textContent = "DSS2 color via " + mirror.name + ". Gold outline shows your capture.";
+      surveyReady("DSS2 color via " + mirror.name + ". The gold outline marks your capture.");
     } catch (error) {
       if (!dialog.open || token !== mapRequest) return;
       chart.hidden = false;
       survey.hidden = true;
-      if (await showLocalSurvey(frame, token)) {
-        button.hidden = true;
-        return;
-      }
+      if (await showLocalSurvey(frame, token)) return;
       if (!dialog.open || token !== mapRequest) return;
       console.warn("Sky survey unavailable",error);
-      button.disabled = false;
-      byId("map-status").textContent = "The online survey could not load. The local finder chart is available.";
+      surveyButton.removeAttribute("aria-disabled");
+      status.textContent = "The online survey is unavailable. You can still use the finder chart.";
     }
   });
   dialog.addEventListener("close",()=>mapRequest++);
