@@ -24,11 +24,11 @@
     <section class="hero" aria-labelledby="home-title">
       <img id="hero-image" alt="" fetchpriority="high">
       <div class="wide hero-inner">
-        <p class="eyebrow">An observing journal from Santa Fe</p>
-        <h1 id="home-title">Deep sky,<br>from Santa Fe.</h1>
-        <p class="hero-copy">Galaxies, nebulae, and star clusters captured with the Celestron Origin.</p>
+        <p class="eyebrow">Deep-sky photography from Santa Fe</p>
+        <h1 id="home-title">Galaxies, nebulae,<br>and nights under<br>Santa Fe skies.</h1>
+        <p class="hero-copy">I point my Celestron Origin at whatever looks promising after dark. Some nights it’s a galaxy, some nights it’s a cloud of glowing gas. Here’s what came out of the stack.</p>
         <div class="hero-actions">
-          <a class="primary" href="#catalog">Explore the gallery <span aria-hidden="true">↘</span></a>
+          <a class="primary" href="#catalog">View the gallery <span aria-hidden="true">↘</span></a>
           <a class="secondary" href="#target/flaming-star/flaming-export">Open Flaming Star</a>
         </div>
       </div>
@@ -49,7 +49,7 @@
 
     <section class="wide about" id="about" aria-labelledby="about-title" tabindex="-1">
       <h2 id="about-title">About this journal</h2>
-      <p>I use a Celestron Origin to photograph the night sky from Santa Fe, New Mexico. The gallery records the targets I’ve observed and lets you compare how different observing nights frame the same part of the sky.</p>
+      <p>These are my nights out with the Celestron Origin in Santa Fe, New Mexico. Open a capture for the story behind it, try a different stretch, or compare what two nights brought out in the same object.</p>
       <p>Sky labels and positions adapted from <a href="https://github.com/mattiaverga/OpenNGC">OpenNGC</a> under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Selected star positions are from <a href="https://simbad.u-strasbg.fr/simbad/">SIMBAD</a> and <a href="https://archive.stsci.edu/hut/stars.html">MAST</a>.</p>
     </section>
   </main>
@@ -63,12 +63,13 @@
           <h1 id="target-title" tabindex="-1"></h1>
         </div>
         <div class="target-meta">
+          <button id="expand-capture" type="button">Full screen</button>
           <button id="compare-nights" type="button" aria-pressed="false" hidden>Compare nights</button>
           <p id="target-count"></p>
         </div>
       </div>
       <div class="viewer-layout">
-        <div>
+        <div id="viewer-frame">
           <div id="night-options" class="night-options" aria-label="Compare observing nights" hidden>
             <label class="field">Left capture <select id="night-left"></select></label>
             <label class="field">Right capture <select id="night-right"></select></label>
@@ -85,11 +86,19 @@
             <div id="compare-overlay" class="compare-overlay" hidden>
               <span id="before-label" class="before-label">Baseline</span><span id="after-label" class="after-label">Adjusted</span><span id="split-line" class="divider" aria-hidden="true"></span>
             </div>
+            <div id="watermark" class="watermark" hidden>
+              <span id="watermark-object"></span>
+              <span id="watermark-session"></span>
+            </div>
           </div>
           <div class="stage-controls">
             <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
             <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
             <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+            <button id="fullscreen-image" type="button" aria-pressed="false">Full screen</button>
+            <a id="detail-file" class="detail-file" target="_blank" rel="noopener" hidden>Open full-resolution file</a>
+            <button id="show-details" type="button" aria-haspopup="dialog">ⓘ Details</button>
+            <button id="show-watermark" type="button" aria-pressed="false">Watermark</button>
             <button id="compare" type="button" aria-pressed="false" disabled>Before / after</button>
             <button id="objects" type="button" aria-pressed="false" hidden>Object labels</button>
             <button id="sky-map" type="button" hidden>Sky map</button>
@@ -101,8 +110,14 @@
             </label>
           </div>
           <p id="night-status" class="night-status" role="status" hidden></p>
+          <p id="detail-status" class="night-status" role="status" hidden></p>
           <p id="stage-status" class="sr-only" role="status"></p>
           <p id="sky-status" class="sr-only" role="status"></p>
+          <dialog class="journal-dialog image-details" id="image-details" aria-labelledby="details-heading">
+            <div class="dialog-header"><h2 id="details-heading">Image details</h2><form method="dialog"><button>Close</button></form></div>
+            <p id="details-object"></p>
+            <dl id="details-fields"></dl>
+          </dialog>
         </div>
 
         <aside class="adjust" aria-label="Image processing">

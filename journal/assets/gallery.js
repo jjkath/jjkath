@@ -10,6 +10,7 @@
   const coverFor = (target) => photo(target, target.cover);
   const baseline = byId("baseline");
   const stage = byId("stage");
+  const viewerFrame = byId("viewer-frame");
   const canvas = byId("adjusted");
   const nightImage = byId("night-image");
   const nightCanvas = byId("night-adjusted");
@@ -17,6 +18,7 @@
   const histogramCache = new WeakMap();
   const skyOverlay = byId("object-overlay");
   const shortDate = new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
+  const imageNumber = new Intl.NumberFormat("en-US",{maximumFractionDigits:1});
 
   const adjustmentDefaults = {
     midtone:0, black:0, white:100, saturation:100, structure:0, scale:"balanced", stars:0, smoothing:0, warm:0,
@@ -57,6 +59,9 @@
   let activeCompare = false;
   let compareNights = false;
   let blinkSide = null;
+  let expanded = false;
+  let showWatermark = false;
+  let detailRequest = 0;
   let usePrecision = false;
   let precisionModel = null;
   let precisionRequest = 0;
@@ -210,6 +215,8 @@
   }
 
   function setNightMode(enabled) {
+    detailRequest++;
+    byId("detail-status").hidden = true;
     if (enabled && usePrecision) setPrecision(false);
     compareNights = enabled;
     activeCompare = false;
@@ -251,6 +258,7 @@
       queueRender();
     }
     syncCaptureTools();
+    if (expanded) loadDetail();
     setZoom(1);
   }
 
@@ -260,6 +268,122 @@
     byId("precision").hidden = !hasSource;
     byId("precision").setAttribute("aria-pressed",String(usePrecision));
     byId("replay").hidden = compareNights || !currentCapture?.replay;
+    const file = byId("detail-file");
+    const detail = currentCapture?.detail;
+    file.hidden = compareNights || !detail?.url;
+    if (detail?.url) file.href = detail.url;
+    else file.removeAttribute("href");
+    byId("show-details").hidden = compareNights;
+    updateWatermark();
+  }
+
+  function updateWatermark() {
+    const stamp = byId("watermark");
+    const button = byId("show-watermark");
+    button.hidden = compareNights;
+    button.setAttribute("aria-pressed",String(showWatermark));
+    stamp.hidden = !showWatermark || !currentCapture || compareNights || !baseline.naturalWidth;
+    if (stamp.hidden) return;
+    const {naturalWidth, naturalHeight} = baseline;
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    const fit = Math.min(width/naturalWidth,height/naturalHeight) * zoom;
+    stamp.style.setProperty("--stamp-left",Math.max(8, 8+panX+(width-naturalWidth*fit)/2)+"px");
+    stamp.style.setProperty("--stamp-bottom",Math.max(8, 8-panY+(height-naturalHeight*fit)/2)+"px");
+    const {name, catalog} = currentTarget;
+    byId("watermark-object").textContent = name === catalog ? name : name + " / " + catalog;
+    const date = shortDate.format(new Date(currentCapture.date + "T12:00:00Z"));
+    const duration = currentCapture.seconds ? " · " + currentCapture.seconds.toLocaleString("en-US") + " s" : "";
+    byId("watermark-session").textContent = "Celestron Origin · " + date + duration;
+  }
+
+  function loadDetail() {
+    const capture = currentCapture;
+    const detail = capture?.detail;
+    if (!expanded || !detail?.url || compareNights) return;
+    const request = ++detailRequest;
+    const status = byId("detail-status");
+    const ready = detail.width + " × " + detail.height + " · Lossless";
+    status.hidden = false;
+    if (baseline.getAttribute("src") === detail.url) {
+      status.textContent = ready;
+      return;
+    }
+    status.textContent = "Loading full-resolution image…";
+    const image = new Image();
+    image.onload = () => {
+      if (request !== detailRequest || !expanded || capture !== currentCapture || compareNights) return;
+      setImageSource(baseline,detail.url,baseline.alt);
+      status.textContent = ready;
+    };
+    image.onerror = () => {
+      if (request === detailRequest) status.textContent = "Full-resolution file unavailable. Showing the web image.";
+    };
+    image.src = detail.url;
+  }
+
+  function openImageDetails() {
+    const capture = currentCapture;
+    if (!capture || compareNights) return;
+    const detail = capture.detail;
+    const width = detail?.width || baseline.naturalWidth;
+    const height = detail?.height || baseline.naturalHeight;
+    const rows = [];
+    if (width && height) {
+      const mp = imageNumber.format(width*height/1e6);
+      rows.push(["Resolution",mp+" MP · "+imageNumber.format(width)+" × "+imageNumber.format(height)+" px"]);
+    }
+    if (detail?.source) rows.push(["Source format",detail.source]);
+    if (detail?.source_file) rows.push(["Source filename",detail.source_file]);
+    if (detail?.source_bytes) rows.push(["Source file size",imageNumber.format(detail.source_bytes/1e6)+" MB"]);
+    rows.push(["Capture date",dateLabel(capture)+(capture.confirmed ? "" : " · provisional")]);
+    if (capture.seconds) rows.push(["Integration",imageNumber.format(capture.seconds)+" s"]);
+    if (detail?.depth) rows.push(["Lossless image",detail.depth+"-bit "+(detail.file.endsWith(".png") ? "PNG" : "WebP")]);
+    byId("details-object").textContent = currentTarget.name;
+    byId("details-fields").replaceChildren(...rows.flatMap(([name,value])=>[
+      element("dt","",name), element("dd","",value)
+    ]));
+    byId("image-details").showModal();
+  }
+
+  function displayExpanded(enabled, fallback=false) {
+    const wasExpanded = expanded;
+    expanded = enabled;
+    viewerFrame.classList.toggle("expanded",enabled);
+    viewerFrame.classList.toggle("viewport-fill",enabled && fallback);
+    document.body.classList.toggle("viewer-expanded",enabled);
+    const button = byId("fullscreen-image");
+    byId("expand-capture").hidden = enabled;
+    button.setAttribute("aria-pressed",String(enabled));
+    button.textContent = enabled ? "Exit full screen" : "Full screen";
+    if (enabled) loadDetail();
+    else {
+      detailRequest++;
+      byId("detail-status").hidden = true;
+    }
+    requestAnimationFrame(()=>{
+      showZoom();
+      if (wasExpanded !== enabled && currentCapture && !byId("target-view").hidden) {
+        (enabled ? button : byId("expand-capture")).focus({preventScroll:true});
+      }
+    });
+  }
+
+  async function toggleExpanded() {
+    if (expanded) {
+      if (document.fullscreenElement === viewerFrame) await document.exitFullscreen();
+      else displayExpanded(false);
+      return;
+    }
+    try {
+      if (typeof viewerFrame.requestFullscreen === "function" && document.fullscreenEnabled) {
+        await viewerFrame.requestFullscreen();
+        return;
+      }
+    } catch {
+      // Browser chrome stays visible when only viewport expansion is available.
+    }
+    displayExpanded(true,true);
   }
 
   function setPrecision(enabled) {
@@ -267,7 +391,7 @@
     const request = ++precisionRequest;
     const status = byId("precision-status");
     status.hidden = !enabled;
-    status.textContent = enabled ? "Loading the cropped 16-bit source…" : "";
+    status.textContent = enabled ? "Loading the 16-bit source…" : "";
     syncCaptureTools();
     choosePreset(preset);
     if (!enabled) return;
@@ -449,6 +573,8 @@
     const transform = "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")";
     for (const layer of [baseline,canvas,nightImage,nightCanvas,skyOverlay]) layer.style.transform = transform;
     stage.classList.toggle("pannable",zoom>1);
+    stage.classList.toggle("expandable",!expanded && zoom <= 1 && !activeCompare && !compareNights);
+    updateWatermark();
     byId("zoom-out").disabled = zoom <= 1;
     byId("zoom-in").disabled = zoom >= 4;
     byId("zoom-fit").textContent = zoom > 1 ? Math.round(zoom * 100) + "%" : "Fit";
@@ -498,6 +624,7 @@
       if (shared) restoreView(new URLSearchParams(shared));
       return;
     }
+    if (expanded) toggleExpanded();
     currentTarget = null;
     currentCapture = null;
     byId("target-view").hidden = true;
@@ -593,6 +720,21 @@
     byId(id).addEventListener("change",queueRender);
   }
   baseline.addEventListener("load",()=>{ syncCaptureTools(); queueRender(); });
+  byId("expand-capture").addEventListener("click",toggleExpanded);
+  byId("show-details").addEventListener("click",openImageDetails);
+  byId("show-watermark").addEventListener("click",()=>{
+    showWatermark = !showWatermark;
+    updateWatermark();
+  });
+  byId("fullscreen-image").addEventListener("click",toggleExpanded);
+  document.addEventListener("fullscreenchange",()=>{
+    if (!viewerFrame.classList.contains("viewport-fill")) displayExpanded(document.fullscreenElement === viewerFrame);
+  });
+  document.addEventListener("keydown",event=>{
+    if (event.key === "Escape" && viewerFrame.classList.contains("viewport-fill") && !document.querySelector("dialog[open]")) {
+      displayExpanded(false);
+    }
+  });
   nightImage.addEventListener("load",queueRender);
   byId("tone-controls").addEventListener("toggle",queueRender);
   byId("precision").addEventListener("click",()=>setPrecision(!usePrecision));
@@ -659,6 +801,9 @@
   byId("zoom-out").addEventListener("click",()=>setZoom(zoom/1.4));
   byId("zoom-fit").addEventListener("click",()=>setZoom(1));
   byId("zoom-in").addEventListener("click",()=>setZoom(zoom*1.4));
+  stage.addEventListener("click",()=>{
+    if (!expanded && zoom <= 1 && !activeCompare && !compareNights) toggleExpanded();
+  });
   function moveDivider(clientX) {
     const bounds = stage.getBoundingClientRect();
     byId("split").value = Math.round(100 * (clientX - bounds.left) / bounds.width);

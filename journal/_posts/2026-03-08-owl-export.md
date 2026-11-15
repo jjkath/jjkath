@@ -10,7 +10,15 @@ cover: false
 image: owl-export.webp
 thumbnail: owl-export-thumb.webp
 integration_seconds: 600
-source_sha256: 6d9e821135cd84021628a28a021708d96d2062e64da07b4821e2d7b6261f391f
+source_sha256: 139f254dbd46e72ef1814fd5b7f70381b4ae178c008a60850870b23cc01b8f7b
+detail:
+  file: owl-export.webp
+  width: 3792
+  height: 2116
+  depth: 8
+  source: HEIC
+  source_file: IMG_4586.HEIC
+  source_bytes: 5817516
 ---
 
-Even in this ten-minute stack, M97’s compact blue-green shell stands out from the surrounding stars.
+Ten minutes with the Owl Nebula. Look for a little blue-green disc among the pinpoints. The zoom button earns its keep on this one.

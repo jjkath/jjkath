@@ -55,10 +55,10 @@ def add_capture(options):
             raise ValueError("new targets require --name, --catalog and --kind")
         name, catalog, kind = options.name, options.catalog, options.kind
 
-    frame_info = magick(source, "-auto-orient", "-format", "%w %h\n", "info:", capture=True).splitlines()
+    frame_info = magick(source, "-auto-orient", "-format", "%w %h %z\n", "info:", capture=True).splitlines()
     if len(frame_info) != 1:
         raise ValueError("choose a single stacked image")
-    width, height = map(int, frame_info[0].split())
+    width, height, depth = map(int, frame_info[0].split())
     left, top, right, bottom = [
         round(pct * size / 100) for pct, size in zip(options.crop, (width, height, width, height))
     ]
@@ -77,6 +77,12 @@ def add_capture(options):
         entry["integration_seconds"] = options.seconds
     if options.replay:
         entry["replay"] = identifier + ".mp4"
+    detail = identifier + (".png" if depth > 8 else ".webp")
+    entry["detail"] = dict(
+        file=detail,width=width-left-right,height=height-top-bottom,depth=16 if depth > 8 else 8,
+        source=source.suffix.removeprefix(".").upper(),source_file=source.name,
+        source_bytes=source.stat().st_size,
+    )
     metadata = yaml.safe_dump(entry, allow_unicode=True, sort_keys=False)
     image_dir = site / "assets" / "images"
     with TemporaryDirectory(dir=site) as directory:
@@ -90,10 +96,16 @@ def add_capture(options):
         magick(*pipeline, "-strip", "-colorspace", "sRGB", "-define", "webp:method=5", "-quality", "91", temp / full)
         magick(temp / full, "-resize", "680x>", "-strip", "-quality", "84", temp / thumb)
         new_hash = digest(temp / full)
-        if any(digest(image_dir / post["image"]) == new_hash for post in posts):
+        if any(path.is_file() and digest(path) == new_hash
+               for path in (image_dir / post["image"] for post in posts)):
             raise ValueError("the rendered capture is already in the journal")
+        lossless = ("-define","png:compression-level=3","-define","png:color-type=2","-depth","16") if depth > 8 else (
+            "-define","webp:lossless=true","-define","webp:method=3","-quality","100")
+        magick(*pipeline,"-alpha","off","-colorspace","sRGB","-strip",*lossless,temp / detail)
+        detail_dir = site / "assets" / "detail"
+        detail_dir.mkdir(exist_ok=True)
         (temp / filename).write_text(f"---\n{metadata}---\n\n{note}\n", encoding="utf-8")
-        outputs = [(temp / full, image_dir / full), (temp / thumb, image_dir / thumb)]
+        outputs = [(temp / full, image_dir / full), (temp / thumb, image_dir / thumb), (temp / detail, detail_dir / detail)]
         if options.replay:
             replay = entry["replay"]
             replay_file = options.replay.resolve(strict=True)
