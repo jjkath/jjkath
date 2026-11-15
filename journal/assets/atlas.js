@@ -11,7 +11,13 @@ const skyAtlas = (() => {
   let labels = false;
   let surveyLoader = null;
   let map = null;
+  let surveyHost = null;
   let mapRequest = 0;
+
+  const surveyMirrors = [
+    {name:"MAST", url:"https://stpubdata.s3.us-east-1.amazonaws.com/mast/skybackgrounds/DSSColor"},
+    {name:"CSIRO", url:"https://casda.csiro.au/hips/DSS2/color"}
+  ];
 
   function node(tag, attributes, content) {
     const element = document.createElementNS(ns, tag);
@@ -80,6 +86,7 @@ const skyAtlas = (() => {
     layers.push(node("text",{x:17,y:330,"font-size":12,class:"finder-text"},
       "RA " + ra0.toFixed(3) + "°   Dec " + dec0.toFixed(3) + "°   ·   " + (60*field.width).toFixed(1) + "′ wide"));
     chart.replaceChildren(...layers);
+    chart.setAttribute("aria-label","North-up finder chart showing the capture footprint");
     byId("map-title").textContent = name + " · Sky map";
     byId("map-status").textContent = "Gold outline shows the field of this capture.";
   }
@@ -96,12 +103,52 @@ const skyAtlas = (() => {
 
   function loadLibrary() {
     if (!surveyLoader) {
-      surveyLoader = import("https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.min.js").then(async({default:A})=>{
+      const module = import("https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.min.js").then(async({default:A})=>{
         await A.init;
         return A;
-      }).catch(error=>{ surveyLoader = null; throw error; });
+      });
+      let timer;
+      const timeout = new Promise((_,reject)=>{
+        timer = setTimeout(()=>reject(new Error("Aladin Lite timed out")),12000);
+      });
+      surveyLoader = Promise.race([module,timeout]).catch(error=>{
+        surveyLoader = null;
+        throw error;
+      }).finally(()=>clearTimeout(timer));
     }
     return surveyLoader;
+  }
+
+  async function findSurvey() {
+    for (const mirror of surveyMirrors) {
+      const controller = new AbortController();
+      const timer = setTimeout(()=>controller.abort(),5000);
+      try {
+        const response = await fetch(mirror.url + "/properties",{signal:controller.signal});
+        if (response.ok && /^hips_order\s*=/m.test(await response.text())) return mirror;
+      } catch (error) {
+        console.info("Trying another DSS2 survey mirror",error);
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    throw new Error("DSS2 survey mirrors unavailable");
+  }
+
+  async function showLocalSurvey(frame, token) {
+    if (!frame.survey) return false;
+    const image = new Image();
+    image.src = frame.survey;
+    try {
+      await image.decode();
+    } catch {
+      return false;
+    }
+    if (!dialog.open || token !== mapRequest) return false;
+    chart.prepend(node("image",{href:frame.survey,width:540,height:350}));
+    chart.setAttribute("aria-label","DSS2 survey showing the capture footprint");
+    byId("map-status").textContent = "DSS2 color from MAST. Gold outline shows your capture.";
+    return true;
   }
 
   byId("load-survey").addEventListener("click",async()=>{
@@ -111,14 +158,19 @@ const skyAtlas = (() => {
     button.disabled = true;
     byId("map-status").textContent = "Loading the Aladin Lite survey…";
     try {
-      const timeout = new Promise((_,reject)=>setTimeout(()=>reject(new Error("Survey timed out")),6500));
-      const A = await Promise.race([loadLibrary(),timeout]);
+      if (!document.createElement("canvas").getContext("webgl2")) {
+        throw new Error("WebGL2 unavailable");
+      }
+      const [A, mirror] = await Promise.all([loadLibrary(),surveyHost || findSurvey()]);
       if (!dialog.open || token !== mapRequest) return;
       chart.hidden = true;
       survey.hidden = false;
       const [ra,dec] = frame.center;
       const fov = Math.max(1, frame.width * 1.8);
-      if (!map) map = A.aladin("#aladin-view",{target:ra + " " + dec,survey:"P/DSS2/color",fov});
+      if (!map) {
+        map = A.aladin("#aladin-view",{target:ra + " " + dec,survey:mirror.url,fov});
+        surveyHost = mirror;
+      }
       map.removeOverlays();
       map.gotoRaDec(ra,dec);
       map.setFoV(fov);
@@ -126,12 +178,17 @@ const skyAtlas = (() => {
       outline.add(A.polygon(frame.footprint,{color:"#f7c57e"}));
       map.addOverlay(outline);
       button.hidden = true;
-      byId("map-status").textContent = "DSS2 color survey via Aladin Lite. Gold outline shows your capture.";
+      byId("map-status").textContent = "DSS2 color via " + mirror.name + ". Gold outline shows your capture.";
     } catch (error) {
       if (!dialog.open || token !== mapRequest) return;
-      console.warn("Online sky survey unavailable",error);
       chart.hidden = false;
       survey.hidden = true;
+      if (await showLocalSurvey(frame, token)) {
+        button.hidden = true;
+        return;
+      }
+      if (!dialog.open || token !== mapRequest) return;
+      console.warn("Sky survey unavailable",error);
       button.disabled = false;
       byId("map-status").textContent = "The online survey could not load. The local finder chart is available.";
     }

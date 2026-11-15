@@ -26,19 +26,39 @@
   };
   const presets = [
     {id:"baseline", name:"Baseline", hint:"The cleaned capture with its saved color."},
-    {id:"faint", name:"Reveal faint detail", midtone:47, structure:25, smoothing:35,
+    {id:"faint", name:"Reveal faint detail", midtone:51, black:.25, white:95, saturation:94,
+      structure:19, smoothing:28, shoulder:10, skyLift:7,
       hint:"Lift dim signal across the frame with a gentle increase in local contrast."},
-    {id:"nebula", name:"Nebula structure", midtone:49, saturation:106, structure:78, scale:"broad", smoothing:45, stars:18,
+    {id:"nebula", name:"Nebula structure", midtone:44, black:.35, white:96, saturation:104, structure:46,
+      scale:"broad", smoothing:29, stars:8, shoulder:14, skyLift:6,
       hint:"Bring out cloud edges, filaments, and dark pockets across a nebula."},
-    {id:"galaxy", name:"Galaxy detail", midtone:43, black:.5, saturation:106, structure:68, scale:"fine", smoothing:35,
+    {id:"galaxy", name:"Galaxy detail", midtone:34, black:.45, white:94, saturation:101, structure:43,
+      scale:"fine", smoothing:26, shoulder:18, skyLift:5,
       hint:"Increase contrast in spiral arms, dust lanes, and small knots within a galaxy."},
-    {id:"warm", name:"Warm nebula", midtone:58, saturation:112, structure:82, scale:"broad", smoothing:45, stars:10, warm:32,
-      hint:"A pink-red color treatment for bright clouds, with the star colors held closer to baseline."},
-    {id:"contrast", name:"High contrast", midtone:20, black:3, saturation:112, structure:34,
+    {id:"andromeda", name:"Andromeda look", stretch:"asinh", midtone:11, black:1.5, white:91,
+      saturation:78, smoothing:18, structure:12, shoulder:38, skyLift:5,
+      andromeda:{midtone:-9, black:2, white:87.9, saturation:48, smoothing:12, structure:0, warm:1},
+      precision:{midtone:68, black:6.1, white:23.2, saturation:66, smoothing:29, structure:0, warm:2, shoulder:30},
+      hint:"Inspired by the Origin HEIC. Lift the outer disk and dust lanes while softening bright cores."},
+    {id:"hdr-core", name:"HDR core", stretch:"asinh", midtone:22, black:.6, saturation:96, structure:78,
+      smoothing:26, skyLift:5, effect:"hdr", amountLabel:"Core compression",
+      hint:"Soften bright extended cores while keeping faint surroundings visible. Try Orion or a bright galaxy."},
+    {id:"local-contrast", name:"Local contrast", stretch:"asinh", midtone:13, black:1, saturation:96,
+      structure:58, smoothing:24, shoulder:10, skyLift:5, effect:"local", amountLabel:"Local contrast",
+      hint:"Adjust contrast within smaller regions to reveal dust lanes, spiral arms, and cloud edges."},
+    {id:"nebula-colors", name:"Nebula colors", stretch:"asinh", midtone:21, black:.45, saturation:103,
+      structure:59, smoothing:28, shoulder:10, skyLift:5, effect:"cloud-color", amountLabel:"Cloud color boost",
+      hint:"Strengthen colors already present in the clouds while protecting the dark background and compact stars."},
+    {id:"warm", name:"Warm nebula", midtone:42, black:.35, saturation:106, structure:34, scale:"broad",
+      smoothing:30, stars:7, warm:14, shoulder:13, skyLift:5,
+      hint:"Warm the bright clouds while keeping the sky and compact stars closer to their original colors."},
+    {id:"contrast", name:"High contrast", midtone:24, black:1.1, white:87, saturation:105,
+      structure:27, shoulder:10, skyLift:-1.5,
       hint:"Darken the sky and increase separation in brighter structure."},
-    {id:"mono", name:"Monochrome", midtone:29, black:1, saturation:0, structure:35,
+    {id:"mono", name:"Monochrome", midtone:34, black:.65, white:94, saturation:0,
+      structure:28, shoulder:11, skyLift:4,
       hint:"Inspect brightness and structure in grayscale."},
-    {id:"false", name:"False color", midtone:29, black:1, structure:35,
+    {id:"false", name:"False color", midtone:34, black:.25, white:94, structure:24, smoothing:28, skyLift:4,
       hint:"Map brightness to a display palette. Colors represent intensity."}
   ];
   const numericControls = ["midtone", "black", "white", "saturation", "structure", "stars", "smoothing", "warm"];
@@ -418,19 +438,24 @@
     settings.protect = byId("highlights").checked;
     settings.monochrome = preset.id === "mono";
     settings.precision = usePrecision && Boolean(precisionModel);
+    settings.effect = preset.effect;
+    settings.skyLift = currentTarget?.id === "m31" && preset.andromeda ? null : preset.skyLift;
+    settings.shoulder = (settings.precision ? preset.precision?.shoulder : null) ?? preset.shoulder ?? 0;
     return settings;
   }
 
   function isAdjusted(settings) {
-    return settings.precision || settings.monochrome || settings.stretch !== "power" ||
+    return settings.precision || settings.monochrome || settings.shoulder > 0 || settings.stretch !== "power" ||
       preset.id === "false" || numericControls.some((id) => settings[id] !== adjustmentDefaults[id]);
   }
 
   function choosePreset(next) {
     preset = next;
     const source = usePrecision ? currentCapture.precision : null;
+    const tuned = currentTarget?.id === "m31" && next.andromeda ? (source ? next.precision : next.andromeda) : null;
     byId("white").min = "1";
-    for (const id of presetControls) byId(id).value = source?.[id] ?? next[id] ?? adjustmentDefaults[id];
+    for (const id of presetControls) byId(id).value = tuned?.[id] ?? source?.[id] ?? next[id] ?? adjustmentDefaults[id];
+    byId("structure-value").previousSibling.textContent = (next.amountLabel || "Structure strength") + " ";
     const usesPalette = next.id === "false";
     byId("palette-control").hidden = !usesPalette;
     byId("saturation").disabled = usesPalette || next.id === "mono";
@@ -478,7 +503,8 @@
       };
       imageCache.set(image,cache);
     }
-    astroProcessing.render(cache.model,cache.work.data,settings,palette);
+    const toneReference = compareNights && image === nightImage ? imageCache.get(baseline)?.model : undefined;
+    astroProcessing.render(cache.model,cache.work.data,settings,palette,toneReference);
     context.putImageData(cache.work,0,0);
     return true;
   }
@@ -527,8 +553,10 @@
     canvas.beginPath();
     canvas.strokeStyle = "#f9d291";
     canvas.lineWidth = 3;
+    const model = settings.precision ? precisionModel : imageCache.get(baseline)?.model;
+    const curve = astroProcessing.toneCurve(settings,model);
     for (let x=0;x<width;x++) {
-      const y = baselineY - chartHeight * astroProcessing.tone(255*x/(width-1),settings)/255;
+      const y = baselineY - chartHeight * curve[Math.round(255*x/(width-1))]/255;
       if (x === 0) canvas.moveTo(x,y);
       else canvas.lineTo(x,y);
     }
@@ -545,7 +573,6 @@
     const settings = activeSettings();
     byId("midtone-value").value = (settings.midtone > 0 ? "+" : "") + settings.midtone;
     for (const id of numericControls.slice(1)) byId(id + "-value").value = settings[id] + "%";
-    drawHistogram(settings);
     const adjusted = isAdjusted(settings) && (!usePrecision || settings.precision);
     const palette = preset.id === "false" ? makePalette(byId("palette").value) : null;
     const visible = adjusted && renderAdjusted(baseline,canvas,settings,palette);
@@ -556,6 +583,7 @@
       byId("night-layer").hidden = !nightImage.complete || !nightImage.naturalWidth;
       nightCanvas.hidden = !(adjusted && renderAdjusted(nightImage,nightCanvas,settings,palette));
     }
+    drawHistogram(settings);
     updateCompare();
   }
 

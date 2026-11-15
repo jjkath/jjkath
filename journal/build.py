@@ -91,7 +91,10 @@ def read_catalog(site, asset_url):
             full=asset_url("images",post["image"]), thumb=asset_url("images",post["thumbnail"]),
         )
         if capture_id in sky:
-            capture["sky"] = sky[capture_id]
+            capture["sky"] = dict(sky[capture_id])
+            survey = f"{capture_id}.webp"
+            if (site / "assets" / "surveys" / survey).is_file():
+                capture["sky"]["survey"] = asset_url("surveys", survey)
         if capture_id in precision:
             data = precision[capture_id]
             if any(type(data[key]) is not int or data[key] < 1 for key in ("width","height")):
@@ -125,10 +128,11 @@ def read_catalog(site, asset_url):
 
 def build(site, output, bundle=None):
     assets = site / "assets"
-    files = set()
+    watermark_font = Path("fonts/zalando-sans-expanded-latin.woff2")
+    files = {watermark_font, Path("fonts/OFL-Zalando-Sans-Expanded.txt")}
     derivatives_path = site / "web_derivatives.json"
     derivatives = json.loads(derivatives_path.read_text(encoding="utf-8")) if derivatives_path.is_file() else {}
-    kinds = {"images":(IMAGE,"image/webp"), "replays":(REPLAY,"video/mp4"),"detail":(DETAIL,None),
+    kinds = {"images":(IMAGE,"image/webp"), "surveys":(IMAGE,"image/webp"), "replays":(REPLAY,"video/mp4"),"detail":(DETAIL,None),
              "precision":(PRECISION,"application/octet-stream")}
 
     def asset_url(folder, filename):
@@ -143,9 +147,12 @@ def build(site, output, bundle=None):
 
     catalog = read_catalog(site, asset_url)
 
-    def render(targets):
+    def render(targets, inline_font=False):
         data = json.dumps(targets, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
         styles = (assets / "gallery.css").read_text(encoding="utf-8")
+        if inline_font:
+            encoded_font = base64.b64encode((assets / watermark_font).read_bytes()).decode("ascii")
+            styles = styles.replace(f"assets/{watermark_font.as_posix()}", f"data:font/woff2;base64,{encoded_font}")
         script = "\n".join((assets / name).read_text(encoding="utf-8") for name in ("image-processing.js","atlas.js","gallery.js"))
         html = (site / "index.template.html").read_text(encoding="utf-8")
         html = html.replace("<!-- styles -->", f"<style>\n{styles}</style>")
@@ -175,7 +182,7 @@ def build(site, output, bundle=None):
             asset_url(folder,filename)
             content = base64.b64encode((output / "assets" / folder / filename).read_bytes()).decode("ascii")
             return f"data:{kinds[folder][1]};base64," + content
-        bundle.write_text(render(read_catalog(site, embedded)), encoding="utf-8")
+        bundle.write_text(render(read_catalog(site, embedded), inline_font=True), encoding="utf-8")
     print(f"Built {len(catalog)} targets and {sum(len(t['captures']) for t in catalog)} captures in {output}")
 
 
