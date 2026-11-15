@@ -15,6 +15,7 @@ SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 IMAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\.webp")
 REPLAY = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\.mp4")
 PRECISION = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\.rgb16")
+DETAIL = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\.(?:webp|png)")
 SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
@@ -60,6 +61,8 @@ def read_posts(site):
 def read_catalog(site, asset_url):
     sky = json.loads((site / "sky_fields.json").read_text(encoding="utf-8"))
     precision = json.loads((site / "precision.json").read_text(encoding="utf-8"))
+    detail_path = site / "detail.json"
+    details = json.loads(detail_path.read_text(encoding="utf-8")) if detail_path.is_file() else {}
     targets = {}
     identifiers = set()
     source_digests = set()
@@ -97,6 +100,10 @@ def read_catalog(site, asset_url):
             capture["precision"]["url"] = asset_url("precision",data["file"])
         if post.get("replay"):
             capture["replay"] = asset_url("replays",post["replay"])
+        detail = post.get("detail",details.get(capture_id))
+        if detail:
+            url = asset_url("detail",detail["file"])
+            capture["detail"] = {**detail,"url":url}
         target["captures"].append(capture)
     if not targets:
         raise ValueError("no capture posts found")
@@ -119,13 +126,18 @@ def read_catalog(site, asset_url):
 def build(site, output, bundle=None):
     assets = site / "assets"
     files = set()
-    kinds = {"images":(IMAGE,"image/webp"), "replays":(REPLAY,"video/mp4"),
+    derivatives_path = site / "web_derivatives.json"
+    derivatives = json.loads(derivatives_path.read_text(encoding="utf-8")) if derivatives_path.is_file() else {}
+    kinds = {"images":(IMAGE,"image/webp"), "replays":(REPLAY,"video/mp4"),"detail":(DETAIL,None),
              "precision":(PRECISION,"application/octet-stream")}
 
     def asset_url(folder, filename):
         pattern, _ = kinds[folder]
-        if not isinstance(filename,str) or not pattern.fullmatch(filename) or not (assets / folder / filename).is_file():
-            raise ValueError(f"Missing or invalid {folder} asset: {filename}")
+        if not isinstance(filename, str) or not pattern.fullmatch(filename):
+            raise ValueError(f"Invalid {folder} asset: {filename}")
+        generated = folder == "images" and filename in derivatives
+        if not generated and not (assets / folder / filename).is_file():
+            raise ValueError(f"Missing {folder} asset: {filename}")
         files.add(Path(folder) / filename)
         return f"assets/{folder}/{filename}"
 
@@ -145,12 +157,23 @@ def build(site, output, bundle=None):
     for filename in sorted(files):
         destination = output / "assets" / filename
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(assets / filename, destination)
+        if filename.parent == Path("images") and filename.name in derivatives:
+            from PIL import Image
+
+            source = derivatives[filename.name]
+            if not isinstance(source, str) or not DETAIL.fullmatch(source):
+                raise ValueError(f"Invalid lossless source for {filename.name}: {source}")
+            with Image.open(assets / "detail" / source) as image:
+                image.convert("RGB").save(destination, "WEBP", quality=92, method=4)
+        else:
+            shutil.copyfile(assets / filename, destination)
     (output / "index.html").write_text(render(catalog), encoding="utf-8")
     if bundle:
         def embedded(folder, filename):
+            if folder == "detail":
+                return None
             asset_url(folder,filename)
-            content = base64.b64encode((assets / folder / filename).read_bytes()).decode("ascii")
+            content = base64.b64encode((output / "assets" / folder / filename).read_bytes()).decode("ascii")
             return f"data:{kinds[folder][1]};base64," + content
         bundle.write_text(render(read_catalog(site, embedded)), encoding="utf-8")
     print(f"Built {len(catalog)} targets and {sum(len(t['captures']) for t in catalog)} captures in {output}")

@@ -10,7 +10,15 @@ cover: true
 image: flaming-export.webp
 thumbnail: flaming-export-thumb.webp
 integration_seconds: 3600
-source_sha256: d03488c2aac87edd7c385b5ce8499cc2d879c8cc2d35b638be7cc8204f14a5cc
+source_sha256: 7b45dc6fea3daf8d340f5b12464b51e3f63119b6dc2f09e7602f1199af95fe96
+detail:
+  file: flaming-export.webp
+  width: 3792
+  height: 2116
+  depth: 8
+  source: HEIC
+  source_file: IMG_4635.HEIC
+  source_bytes: 5372027
 ---
 
-Faint reddish folds fill the field around the bright blue star. A modest midtone stretch makes the dust easier to follow across this one-hour exposure.
+That bright blue star is AE Aurigae. Give the frame a gentle midtone stretch and follow the reddish folds around it.

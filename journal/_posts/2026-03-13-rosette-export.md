@@ -10,7 +10,15 @@ cover: true
 image: rosette-export.webp
 thumbnail: rosette-export-thumb.webp
 integration_seconds: 5400
-source_sha256: 2627682d3bc855b43623d1051d1188ff914b202b523a74eb9cf49dcec955a4ee
+source_sha256: 74b82715f1a6353c9dcf094645b9e43c8e32567c7e7dde6815481788fa63854f
+detail:
+  file: rosette-export.webp
+  width: 3792
+  height: 2116
+  depth: 8
+  source: HEIC
+  source_file: IMG_4636.HEIC
+  source_bytes: 3528050
 ---
 
-The central star cluster is surrounded by a broad ring of soft nebulosity. This restrained rendering brings out several dark lanes along the rim.
+The stars in the middle get your attention first, but the good stuff is around the rim. Try Nebula structure to trace the clouds and Warm nebula for a pinker take.

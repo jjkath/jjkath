@@ -13,4 +13,4 @@ integration_seconds: 3600
 source_sha256: a7efd9ab4c3f86b9208bd5dd013831c713dea1762bcc83d866385b264d323eaf
 ---
 
-The bright nucleus anchors this wide field. Look for the dust lanes across the inclined disc and the smaller companion galaxies nearby.
+Andromeda’s core is hard to miss. Try following the dust lanes away from it, then turn on Object labels to find M32 and M110 in the same frame.
