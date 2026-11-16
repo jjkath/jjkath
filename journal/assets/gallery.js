@@ -30,6 +30,8 @@
   const skyOverlay = byId("object-overlay");
   const shortDate = new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
   const imageNumber = new Intl.NumberFormat("en-US",{maximumFractionDigits:1});
+  const favoritePrefix = "jjkath.favorite.v1.";
+  const catalogSummary = targets.length + " targets · " + targets.reduce((sum,target)=>sum+target.captures.length,0) + " captures";
 
   const adjustmentDefaults = {
     midtone:0, black:0, white:100, saturation:100, structure:0, scale:"balanced", stars:0, smoothing:0, warm:0,
@@ -92,6 +94,8 @@
   };
 
   let kind = "All";
+  let favoritesOnly = false;
+  let favorites = readFavorites() ?? new Set();
   let currentTarget = null;
   let currentCapture = null;
   let preset = presets[0];
@@ -127,36 +131,97 @@
     return node;
   }
 
+  function readFavorites() {
+    try {
+      return new Set(targets.flatMap(target=>target.captures
+        .map(capture=>routeTo(target,capture))
+        .filter(route=>localStorage.getItem(favoritePrefix + route) === "1")));
+    } catch {
+      return null;
+    }
+  }
+
+  function syncFavoriteButton() {
+    const button = byId("favorite-capture");
+    const saved = currentCapture && favorites.has(routeTo(currentTarget,currentCapture));
+    button.hidden = !currentCapture || compareNights;
+    button.setAttribute("aria-pressed",String(Boolean(saved)));
+    byId("favorite-icon").textContent = saved ? "★" : "☆";
+  }
+
+  function toggleFavorite() {
+    if (!currentCapture || compareNights) return;
+    const route = routeTo(currentTarget,currentCapture);
+    const key = favoritePrefix + route;
+    const saved = !favorites.has(route);
+    if (saved) favorites.add(route);
+    else favorites.delete(route);
+    let persisted = true;
+    try {
+      if (saved) localStorage.setItem(key,"1");
+      else localStorage.removeItem(key);
+    } catch {
+      persisted = false;
+    }
+    syncFavoriteButton();
+    if (favoritesOnly) renderCards();
+    byId("stage-status").textContent = saved
+      ? (persisted ? "Capture added to Favorites." : "Capture favorited for this visit.")
+      : "Capture removed from Favorites.";
+  }
+
   function renderCards() {
+    const order = byId("gallery-sort").value;
+    const latestFirst = (a,b)=>b.date.localeCompare(a.date);
+    const longestFirst = (a,b)=>(b.seconds || 0)-(a.seconds || 0) || latestFirst(a,b);
+    const compareCaptures = order === "latest" ? latestFirst : order === "exposure" ? longestFirst : null;
     const query = byId("search").value.trim().toLocaleLowerCase().replace(/\s+/g, "");
-    const filtered = targets.filter((target) => {
+    const entries = targets.flatMap(target=>{
+      if (kind !== "All" && target.kind !== kind) return [];
       const text = (target.name + " " + target.catalog).toLocaleLowerCase().replace(/\s+/g, "");
-      return (kind === "All" || target.kind === kind) && (!query || text.includes(query));
+      if (query && !text.includes(query)) return [];
+      const captures = favoritesOnly
+        ? target.captures.filter(capture=>favorites.has(routeTo(target,capture)))
+        : [compareCaptures ? [...target.captures].sort(compareCaptures)[0] : coverFor(target)];
+      return captures.map(capture=>({target,capture}));
     });
-    byId("result-count").textContent = filtered.length + (filtered.length === 1 ? " target" : " targets");
+    if (order !== "gallery") {
+      entries.sort((a,b)=>(compareCaptures ? compareCaptures(a.capture,b.capture) : 0)
+        || a.target.name.localeCompare(b.target.name));
+    }
+    const noun = favoritesOnly ? "favorite capture" : "target";
+    const result = entries.length + " " + noun + (entries.length === 1 ? "" : "s");
+    byId("result-count").textContent = result;
+    byId("catalog-count").textContent = favoritesOnly ? result : catalogSummary;
     const cards = byId("cards");
-    if (!filtered.length) {
-      cards.replaceChildren(element("p", "empty", "No targets match this search."));
+    if (!entries.length) {
+      const message = !favoritesOnly ? "No targets match this search." : favorites.size
+        ? "No favorite captures match these filters." : "Open a capture and choose Favorite under More to save it here.";
+      cards.replaceChildren(element("p","empty",message));
       return;
     }
-    const entries = filtered.map((target) => {
-      const cover = coverFor(target);
+    cards.replaceChildren(...entries.map(({target,capture})=>{
       const link = element("a", "card");
-      link.href = routeTo(target, cover);
+      link.href = routeTo(target,capture);
       const imageWrap = element("span", "card-image");
       const image = element("img");
-      image.src = cover.thumb;
+      image.src = capture.thumb;
       image.alt = "";
       image.loading = "lazy";
       imageWrap.append(image);
       const body = element("div", "card-body");
       const title = element("div");
       title.append(element("p", "card-meta", target.catalog), element("h3", "", target.name));
-      body.append(title, element("span", "card-count", target.captures.length + (target.captures.length === 1 ? " capture" : " captures")));
+      const metadata = [];
+      if (favoritesOnly || order === "latest") metadata.push(nightLabel(capture));
+      if (order === "exposure") {
+        metadata.push(capture.seconds ? imageNumber.format(capture.seconds / 60) + " min" : "Integration unknown");
+      }
+      if (!metadata.length) metadata.push(target.captures.length + (target.captures.length === 1 ? " capture" : " captures"));
+      body.append(title,element("span","card-count",metadata.join(" · ")));
       link.append(imageWrap, body);
       return link;
-    });
-    cards.replaceChildren(...entries);
+    }));
   }
 
   function buildFilters() {
@@ -274,11 +339,9 @@
     blinkSide = null;
     byId("split").value = "50";
     byId("night-options").hidden = !enabled;
-    byId("night-blink").hidden = !enabled;
     byId("night-status").hidden = !enabled;
     byId("night-notes").hidden = !enabled;
     byId("single-notes").hidden = enabled;
-    byId("target-count").hidden = enabled;
     byId("compare").hidden = enabled;
     byId("split-label").textContent = enabled ? "Observing nights divider" : "Before and after divider";
     byId("adjusted-layer").hidden = true;
@@ -327,6 +390,7 @@
     byId("show-details").hidden = compareNights;
     byId("open-webb").hidden = compareNights || !currentCapture?.webb;
     syncCaptureNavigation();
+    syncFavoriteButton();
     updateWatermark();
   }
 
@@ -415,18 +479,31 @@
     if (focus) (open ? byId("adjust-heading") : button).focus({preventScroll:open || !compactFullScreen.matches});
   }
 
-  function showViewerTools(open) {
+  function showViewerTools(open, {reveal = false} = {}) {
     const button = byId("toggle-viewer-tools");
     viewerFrame.classList.toggle("tools-open", open);
     button.setAttribute("aria-expanded", String(open));
     button.setAttribute("aria-controls", expanded ? "viewer-rail" : "viewer-tools");
     button.textContent = expanded ? (open ? "Hide controls" : "Controls") : (open ? "Less" : "More");
     if (expanded && !open) toggleAdjustments(false);
-    if (expanded && open) viewerOptions.scrollLeft = 0;
+    if (expanded || !open) viewerOptions.scrollLeft = 0;
     requestAnimationFrame(()=>{
       syncToolScroll();
+      if (open && reveal && !expanded) {
+        const firstTool = byId("viewer-tools").querySelector(":scope > :not([hidden])");
+        revealViewerControl(firstTool);
+      }
       showZoom();
     });
+  }
+
+  function revealViewerControl(control) {
+    if (!control) return;
+    const bounds = control.getBoundingClientRect();
+    const row = viewerOptions.getBoundingClientRect();
+    if (row.width && bounds.width && (bounds.left < row.left || bounds.right > row.right)) {
+      viewerOptions.scrollLeft += bounds.left - row.left - 2;
+    }
   }
 
   function toolsAtEnd() {
@@ -434,7 +511,7 @@
   }
 
   function syncToolScroll() {
-    const overflowing = expanded && viewerRail.clientWidth > 0 && viewerOptions.scrollWidth > viewerRail.clientWidth + 1;
+    const overflowing = viewerRail.clientWidth > 0 && viewerOptions.scrollWidth > viewerRail.clientWidth + 1;
     scrollTools.hidden = !overflowing;
     if (!overflowing) return;
     const atEnd = toolsAtEnd();
@@ -463,19 +540,23 @@
   function syncCaptureNavigation() {
     const captures = currentTarget?.captures ?? [];
     const navigation = byId("capture-navigation");
-    navigation.hidden = !expanded || compareNights || captures.length < 2;
+    navigation.hidden = compareNights || captures.length < 2;
     if (navigation.hidden) return;
     const index = captures.indexOf(currentCapture);
     byId("previous-capture").disabled = index <= 0;
     byId("next-capture").disabled = index >= captures.length-1;
-    byId("capture-position").textContent = `${index+1} of ${captures.length}`;
+    byId("capture-position").textContent = `${index+1}/${captures.length}`;
     byId("capture-date").textContent = ` · ${shortDate.format(new Date(currentCapture.date + "T12:00:00Z"))}`;
+    byId("capture-announcement").textContent = `Capture ${index+1} of ${captures.length} · ${dateLabel(currentCapture)}`;
   }
 
   function stepCapture(offset) {
+    if (!currentCapture || compareNights) return false;
     const captures = currentTarget.captures;
     const next = captures[captures.indexOf(currentCapture) + offset];
-    if (next) location.hash = routeTo(currentTarget,next);
+    if (!next) return false;
+    location.hash = routeTo(currentTarget,next);
+    return true;
   }
 
   function loadWebbReference() {
@@ -615,14 +696,8 @@
       cancelTap();
       setCleanView(false);
       toggleAdjustments(false);
-      const nightOptions = byId("night-options");
-      if (enabled) {
-        byId("toggle-adjustments").after(nightOptions);
-        viewerFrame.append(adjustmentPanel);
-      } else {
-        stage.before(nightOptions);
-        viewerFrame.after(adjustmentPanel);
-      }
+      if (enabled) viewerFrame.append(adjustmentPanel);
+      else viewerFrame.after(adjustmentPanel);
       showViewerTools(enabled && !compactFullScreen.matches && !touchScreen.matches);
     }
     if (enabled) loadDetail();
@@ -918,7 +993,7 @@
     cancelTap();
     setOriginalPreview(false);
     toggleAdjustments(false);
-    if (!expanded) showViewerTools(false);
+    if (!expanded && previousTarget !== target) showViewerTools(false);
     const detail = capture.detail;
     stage.style.setProperty("--frame-ratio", detail ? detail.width + " / " + detail.height : "1.79");
     usePrecision = false;
@@ -932,7 +1007,6 @@
     byId("adjusted-layer").hidden = true;
     byId("target-catalog").textContent = target.catalog + " · " + target.kind;
     byId("target-title").textContent = target.name;
-    byId("target-count").textContent = (target.captures.indexOf(capture)+1) + " of " + target.captures.length;
     renderCaptureNotes(target,capture);
     byId("home-view").hidden = true;
     byId("home-masthead").hidden = true;
@@ -1121,9 +1195,21 @@
 
   buildFilters();
   renderCards();
-  byId("catalog-count").textContent = targets.length + " targets · " + targets.reduce((sum,target)=>sum+target.captures.length,0) + " captures";
   byId("hero-image").src = coverFor(targets.find((target)=>target.id==="flaming-star")).full;
   byId("search").addEventListener("input",renderCards);
+  byId("gallery-sort").addEventListener("change",renderCards);
+  byId("gallery-favorites").addEventListener("click",event=>{
+    favoritesOnly = !favoritesOnly;
+    event.currentTarget.setAttribute("aria-pressed",String(favoritesOnly));
+    renderCards();
+  });
+  byId("favorite-capture").addEventListener("click",toggleFavorite);
+  window.addEventListener("storage",event=>{
+    if (event.key !== null && !event.key.startsWith(favoritePrefix)) return;
+    favorites = readFavorites() ?? favorites;
+    syncFavoriteButton();
+    if (favoritesOnly) renderCards();
+  });
 
   byId("all-presets").replaceChildren(...presets.map(item=>new Option(item.name,item.id)));
   byId("all-presets").addEventListener("change",event=>choosePreset(presets.find(item=>item.id === event.target.value)));
@@ -1145,7 +1231,7 @@
   byId("toggle-adjustments").addEventListener("click",()=>toggleAdjustments(adjustmentPanel.hidden,true));
   byId("preview-original").addEventListener("click",()=>setOriginalPreview(!previewOriginal));
   byId("close-adjustments").addEventListener("click",()=>toggleAdjustments(false,true));
-  byId("toggle-viewer-tools").addEventListener("click",()=>showViewerTools(!viewerFrame.classList.contains("tools-open")));
+  byId("toggle-viewer-tools").addEventListener("click",()=>showViewerTools(!viewerFrame.classList.contains("tools-open"),{reveal:true}));
   scrollTools.addEventListener("click",()=>{
     const left = toolsAtEnd() ? 0 : viewerOptions.scrollLeft + Math.max(44,viewerOptions.clientWidth-44);
     viewerOptions.scrollTo({left,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
@@ -1153,7 +1239,7 @@
   viewerOptions.addEventListener("scroll",syncToolScroll,{passive:true});
   const toolLayout = new ResizeObserver(syncToolScroll);
   toolLayout.observe(viewerRail);
-  for (const control of viewerOptions.querySelectorAll("button, a, .compare-range")) toolLayout.observe(control);
+  for (const control of viewerOptions.querySelectorAll("button, a, .capture-navigation, .compare-range, .night-options")) toolLayout.observe(control);
   byId("watermark-art").addEventListener("load",()=>{
     byId("watermark-art").hidden = false;
     byId("watermark").classList.add("has-artwork");
@@ -1213,9 +1299,19 @@
     if (!viewerFrame.classList.contains("viewport-fill")) displayExpanded(document.fullscreenElement === viewerFrame);
   });
   document.addEventListener("keydown",event=>{
-    if (event.key !== "Escape" || document.querySelector("dialog[open]")) return;
-    if (!adjustmentPanel.hidden) toggleAdjustments(false,true);
-    else if (viewerFrame.classList.contains("viewport-fill")) displayExpanded(false);
+    if (event.defaultPrevented || document.querySelector("dialog[open]")) return;
+    if (event.key === "Escape") {
+      if (!adjustmentPanel.hidden) toggleAdjustments(false,true);
+      else if (viewerFrame.classList.contains("viewport-fill")) displayExpanded(false);
+      return;
+    }
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.repeat) return;
+    if (!currentCapture || !adjustmentPanel.hidden || zoom > 1 || pixelView) return;
+    const focused = event.target;
+    if (focused instanceof Element && focused.closest("input, select, textarea, [contenteditable], a, .stage-controls")
+      && !focused.closest("#capture-navigation")) return;
+    if (stepCapture(event.key === "ArrowLeft" ? -1 : 1)) event.preventDefault();
   });
   nightImage.addEventListener("load",queueRender);
   byId("tone-controls").addEventListener("toggle",queueRender);
@@ -1291,7 +1387,13 @@
     activeCompare = !activeCompare;
     updateCompare();
   });
-  byId("compare-nights").addEventListener("click",()=>setNightMode(!compareNights));
+  byId("compare-nights").addEventListener("click",()=>{
+    setNightMode(!compareNights);
+    requestAnimationFrame(()=>{
+      syncToolScroll();
+      revealViewerControl(byId("compare-nights"));
+    });
+  });
   for (const side of ["left","right"]) byId("night-" + side).addEventListener("change",syncNights);
   byId("night-blink").addEventListener("click",()=>{
     blinkSide = blinkSide === "left" ? "right" : blinkSide === "right" ? "left" : "right";
