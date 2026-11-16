@@ -21,6 +21,8 @@
   const webbReference = byId("webb-reference");
   const webbImagePage = byId("webb-image-page");
   const webbImage = byId("webb-image-full");
+  const webbDialogAsset = {image:webbReference, status:byId("webb-load-status"), retry:byId("webb-retry")};
+  const webbPageAsset = {image:webbImage, status:byId("webb-image-status"), retry:byId("webb-image-retry")};
   const adjustmentPanel = byId("image-adjustments");
   const canvas = byId("adjusted");
   const nightImage = byId("night-image");
@@ -559,34 +561,43 @@
     return true;
   }
 
-  function loadWebbReference() {
-    if (!webbDialog.open || (narrowWebb.matches && byId("webb-images").dataset.view !== "reference")) return;
-    if (webbReference.hasAttribute("src")) return;
-    byId("webb-load-status").textContent = "Loading the infrared image…";
-    webbReference.src = currentCapture.webb.url;
+  function clearWebbAsset(asset) {
+    asset.reference = null;
+    asset.image.removeAttribute("src");
+    asset.image.hidden = asset.retry.hidden = true;
+    asset.status.textContent = "";
+  }
+
+  function loadWebbAsset(asset, reference) {
+    clearWebbAsset(asset);
+    asset.reference = reference;
+    asset.status.textContent = "Loading the Webb image…";
+    asset.image.alt = reference.alt;
+    asset.image.src = reference.url;
+  }
+
+  function loadWebbReference(force = false) {
+    if (!webbDialog.open || (!force && narrowWebb.matches && byId("webb-images").dataset.view !== "reference")) return;
+    if (!webbDialogAsset.reference) loadWebbAsset(webbDialogAsset,currentCapture.webb);
   }
 
   function selectWebbView(view) {
     byId("webb-images").dataset.view = view;
     byId("webb-show-capture").setAttribute("aria-pressed",String(view === "capture"));
     byId("webb-show-reference").setAttribute("aria-pressed",String(view === "reference"));
+    webbField.refresh();
     loadWebbReference();
   }
 
   function openWebbComparison() {
     const reference = currentCapture?.webb;
     if (!reference) return;
-    const footprint = reference.footprint;
     const capture = byId("webb-capture");
     const edit = byId("webb-edit-image");
     const {width,height} = currentCapture.detail || {width:baseline.naturalWidth,height:baseline.naturalHeight};
-    if (width && height) capture.parentElement.style.setProperty("--photo-ratio",width/height);
-    webbReference.removeAttribute("src");
-    webbReference.hidden = true;
-    byId("webb-load-status").textContent = "";
+    clearWebbAsset(webbDialogAsset);
     capture.alt = currentTarget.name + " photographed with Celestron Origin";
     capture.src = currentCapture.full;
-    webbReference.alt = reference.alt;
     byId("webb-title").textContent = "Compare with Webb · " + currentTarget.name;
     const canShowEdit = !byId("adjusted-layer").hidden;
     byId("webb-show-edit").hidden = !canShowEdit;
@@ -604,17 +615,16 @@
     const source = byId("webb-source");
     source.href = reference.source;
     source.textContent = reference.archive ? "Webb observing program ↗" : "Official release and downloads ↗";
-    byId("webb-open-image").href = reference.archive ? "#webb/" + currentTarget.id + "/" + currentCapture.id : reference.url;
+    byId("webb-open-image").href = "#webb/" + currentTarget.id + "/" + currentCapture.id;
     const look = webbLook(reference);
     byId("webb-try-look").textContent = "Try " + look.name + " on my capture";
     byId("webb-license").hidden = !reference.license;
     if (reference.license) byId("webb-license").href = reference.license;
-    byId("webb-footprint").toggleAttribute("hidden",!footprint);
-    byId("webb-footprint-note").hidden = !footprint;
-    if (footprint) {
-      const points = footprint.map(point=>point.map(value=>1000*value).join(",")).join(" ");
-      byId("webb-footprint").firstElementChild.setAttribute("points",points);
-    }
+    webbField.open(reference,width/height,()=>{
+      const fullCapture = currentCapture.detail?.url;
+      if (fullCapture && capture.getAttribute("src") !== fullCapture) capture.src = fullCapture;
+      loadWebbReference(true);
+    });
     webbDialog.showModal();
     selectWebbView("capture");
   }
@@ -630,6 +640,42 @@
     byId("webb-capture").hidden = enabled;
     byId("webb-edit-image").hidden = !enabled;
     byId("webb-capture-label").textContent = (enabled ? "My edited capture" : "My capture") + " · " + dateLabel(currentCapture);
+  }
+
+  function openWebbImagePage(target,capture) {
+    const reference = capture.webb;
+    byId("webb-image-title").textContent = reference.name;
+    byId("webb-image-band").textContent = reference.band;
+    byId("webb-image-credit").textContent = reference.credit;
+    const license = byId("webb-image-license");
+    license.hidden = !reference.license;
+    if (reference.license) license.href = reference.license;
+    byId("webb-image-back").href = routeTo(target,capture);
+    const download = byId("webb-image-download");
+    download.href = reference.full_url || reference.url;
+    download.textContent = reference.archive ? "Download archive JPEG ↗" : "Download full-resolution image ↗";
+    const source = byId("webb-image-program");
+    source.hidden = reference.source === reference.research.url;
+    source.href = reference.source;
+    source.textContent = reference.archive ? "Observing program ↗" : "Official image release ↗";
+    byId("webb-image-caption").textContent = reference.caption;
+    const details = [["Image type",reference.archive ? "Single-filter archive preview" : "Color-mapped infrared composite"]];
+    if (reference.program) details.push(["JWST program",reference.program]);
+    const size = reference.field_size?.join(" × ");
+    if (size || reference.field_label) details.push(["Field of view",reference.field_label || size + " arcminutes"]);
+    if (reference.technical) details.push(["Image notes",reference.technical]);
+    byId("webb-image-fields").replaceChildren(...details.flatMap(([label,value])=>[
+      element("dt","",label),element("dd","",value)
+    ]));
+    const research = reference.research;
+    byId("webb-research-summary").textContent = research.summary;
+    const link = byId("webb-research-link");
+    link.href = research.url;
+    link.textContent = research.label + " ↗";
+    if (webbPageAsset.reference !== reference) loadWebbAsset(webbPageAsset,reference);
+    document.title = reference.name + " | Webb Image & Science";
+    byId("webb-image-title").focus({preventScroll:true});
+    window.scrollTo(0,0);
   }
 
   function loadDetail() {
@@ -1025,9 +1071,9 @@
     const [sectionName, targetId, captureId] = hash.split("/");
     const target = targets.find(item=>item.id === targetId);
     const capture = target && (photo(target,captureId) || coverFor(target));
-    const archive = sectionName === "webb" && capture?.webb?.archive;
-    webbImagePage.hidden = !archive;
-    if (!archive) webbImage.removeAttribute("src");
+    const showWebbPage = sectionName === "webb" && Boolean(capture?.webb);
+    webbImagePage.hidden = !showWebbPage;
+    if (!showWebbPage) clearWebbAsset(webbPageAsset);
     if (sectionName === "target" && capture) {
       if (capture !== currentCapture) openCapture(target,capture);
       if (shared) restoreView(new URLSearchParams(shared));
@@ -1039,24 +1085,10 @@
     currentTarget = null;
     currentCapture = null;
     byId("target-view").hidden = true;
-    byId("home-view").hidden = Boolean(archive);
-    byId("home-masthead").hidden = Boolean(archive);
-    if (archive) {
-      const reference = capture.webb;
-      byId("webb-image-title").textContent = reference.name;
-      byId("webb-image-band").textContent = reference.band;
-      byId("webb-image-credit").textContent = reference.credit;
-      byId("webb-image-back").href = routeTo(target,capture);
-      byId("webb-image-download").href = reference.url;
-      byId("webb-image-program").href = reference.source;
-      if (webbImage.getAttribute("src") !== reference.url) {
-        webbImage.hidden = true;
-        webbImage.alt = reference.alt;
-        byId("webb-image-status").textContent = "Loading the archive image…";
-        webbImage.src = reference.url;
-      }
-      document.title = reference.name + " | Webb archive";
-      window.scrollTo(0,0);
+    byId("home-view").hidden = showWebbPage;
+    byId("home-masthead").hidden = showWebbPage;
+    if (showWebbPage) {
+      openWebbImagePage(target,capture);
       return;
     }
     document.title = "jjkath astrophotography";
@@ -1264,34 +1296,38 @@
     choosePreset(look);
     toggleAdjustments(true,true);
   });
-  narrowWebb.addEventListener("change",loadWebbReference);
-  for (const image of [byId("webb-capture"),webbReference]) {
-    image.addEventListener("load",()=>{
-      if (!webbDialog.open || !image.naturalWidth) return;
-      image.parentElement.style.setProperty("--photo-ratio",image.naturalWidth/image.naturalHeight);
-      if (image === webbReference) {
-        image.hidden = false;
-        byId("webb-load-status").textContent = "";
-      }
-    });
-  }
-  webbReference.addEventListener("error",()=>{
-    if (webbDialog.open && webbReference.hasAttribute("src")) {
-      byId("webb-load-status").textContent = "The image could not load here. Open the Webb source below.";
+  narrowWebb.addEventListener("change",()=>loadWebbReference());
+  const webbCaptureImage = byId("webb-capture");
+  webbCaptureImage.addEventListener("load",()=>{
+    if (webbDialog.open && webbCaptureImage.naturalWidth) {
+      webbField.setImageRatio("capture",webbCaptureImage.naturalWidth/webbCaptureImage.naturalHeight);
     }
   });
-  webbImage.addEventListener("load",()=>{
-    webbImage.hidden = false;
-    byId("webb-image-status").textContent = "";
-  });
-  webbImage.addEventListener("error",()=>{
-    byId("webb-image-status").textContent = "The archive image could not load. Try the download link below.";
-  });
+  for (const asset of [webbDialogAsset,webbPageAsset]) {
+    const {image,status,retry} = asset;
+    image.addEventListener("load",()=>{
+      if (!asset.reference || !image.naturalWidth) return;
+      image.hidden = false;
+      retry.hidden = true;
+      status.textContent = "";
+      if (asset === webbDialogAsset) webbField.setImageRatio("reference",image.naturalWidth/image.naturalHeight);
+    });
+    image.addEventListener("error",()=>{
+      if (!asset.reference) return;
+      const {url,fallback_url: fallback} = asset.reference;
+      if (fallback && image.getAttribute("src") === url) {
+        status.textContent = "Trying another size from the official source…";
+        image.src = fallback;
+        return;
+      }
+      status.textContent = "The Webb image is unavailable here. Retry or open the official source.";
+      retry.hidden = false;
+    });
+    retry.addEventListener("click",()=>loadWebbAsset(asset,asset.reference));
+  }
   webbDialog.addEventListener("close",()=>{
     if (webbDialog.open) return;
-    webbReference.removeAttribute("src");
-    webbReference.hidden = true;
-    byId("webb-load-status").textContent = "";
+    clearWebbAsset(webbDialogAsset);
     const edit = byId("webb-edit-image");
     edit.width = edit.height = 0;
   });

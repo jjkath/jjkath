@@ -160,22 +160,35 @@ def read_catalog(site, asset_url):
     if webb_path.is_file():
         for target_id, reference in json.loads(webb_path.read_text(encoding="utf-8")).items():
             target = targets[target_id]
-            image_url = urlsplit(reference["url"])
-            if image_url.scheme != "https" or image_url.netloc not in ("cdn.esawebb.org", "assets.science.nasa.gov", "mast.stsci.edu"):
-                raise ValueError(f"{target_id}: Webb image URL must use an official Webb archive")
+            for key in ("url", "full_url", "fallback_url"):
+                if key not in reference:
+                    continue
+                image_url = urlsplit(reference[key])
+                if image_url.scheme != "https" or image_url.netloc not in (
+                    "esawebb.org", "cdn.esawebb.org", "assets.science.nasa.gov", "mast.stsci.edu"
+                ):
+                    raise ValueError(f"{target_id}: {key} must use an official Webb archive")
+            if urlsplit(reference["research"]["url"]).scheme != "https":
+                raise ValueError(f"{target_id}: Webb research needs an HTTPS source")
             fields = {key: value for key, value in reference.items()
-                      if key not in ("field", "region", "capture_footprints")}
+                      if key not in ("field", "region", "capture_footprints", "raster_corners")}
             registered = reference.get("capture_footprints", {})
             if not registered.keys() <= {capture["id"] for capture in target["captures"]}:
                 raise ValueError(f"{target_id}: a Webb footprint names an unknown capture")
             if reference.get("region") and not reference.get("field"):
                 raise ValueError(f"{target_id}: a regional Webb comparison needs a published field of view")
+            field = reference.get("field", {})
+            raster = reference.get("raster_corners")
+            raster_field = {"corners": raster} if raster else field if "arcminutes" in field else None
             for capture in target["captures"]:
                 footprint = registered.get(capture["id"])
-                if footprint is None and "field" in reference and "sky" in capture:
-                    footprint = webb_footprint(reference["field"], capture["sky"])
+                sky_field = capture.get("sky")
+                if footprint is None and field and sky_field:
+                    footprint = webb_footprint(field, sky_field)
                 if footprint or not reference.get("region"):
-                    capture["webb"] = {**fields, "footprint":footprint}
+                    alignment = webb_footprint(raster_field, sky_field) if footprint and raster_field and sky_field else None
+                    capture["webb"] = {**fields, "footprint":footprint, "alignment":alignment,
+                                       "field_size": field.get("arcminutes")}
     comparisons = json.loads((site / "alignments.json").read_text(encoding="utf-8"))
     for target_id, alignment in comparisons.items():
         target = targets[target_id]
@@ -214,7 +227,8 @@ def build(site, output, bundle=None):
     def render(targets):
         data = json.dumps(targets, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
         styles = (assets / "gallery.css").read_text(encoding="utf-8")
-        script = "\n".join((assets / name).read_text(encoding="utf-8") for name in ("image-processing.js","atlas.js","gallery.js"))
+        scripts = ("image-processing.js", "atlas.js", "webb-field.js", "gallery.js")
+        script = "\n".join((assets / name).read_text(encoding="utf-8") for name in scripts)
         html = (site / "index.template.html").read_text(encoding="utf-8")
         html = html.replace("<!-- styles -->", f"<style>\n{styles}</style>")
         return html.replace(

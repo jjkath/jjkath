@@ -112,7 +112,32 @@
     "note": "Find the bright elliptical NGC 4874 at the center of the field. Webb zooms in on that galaxy and its immediate neighbors.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=5989",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw05989-o007_t007_nircam_clear-f356w_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw05989-o007_t007_nircam_clear-f356w_i2d.jpg",
+    "caption": "Start with the round glow of NGC 4874. Then count how many little galaxies you can pick out around it. This is a close-up of the busy center of the Coma Cluster.",
+    "research": {
+      "summary": "The study measures small variations in the glow of elliptical galaxies. Those variations help astronomers estimate distances to the Coma Cluster and independently calibrate part of the cosmic distance ladder.",
+      "label": "Read the Coma distance survey proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=5989"
+    },
+    "program": "5989",
+    "raster_corners": [
+      [
+        194.88281305,
+        27.93467151
+      ],
+      [
+        194.96963119,
+        27.97519449
+      ],
+      [
+        194.94926587,
+        28.00924856
+      ],
+      [
+        194.86242798,
+        27.96871279
+      ]
+    ]
   },
   "m101": {
     "alt": "Infrared view of a bright knot and curved filaments in the NGC 5462 star-forming region.",
@@ -175,16 +200,52 @@
     "note": "Webb’s field includes NGC 5462, a star-forming region in one of M101’s spiral arms. The bright arc shows the fine structure inside a small knot in the wider view.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=3429",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw03429-o110_t002_nircam_clear-f335m_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw03429-o110_t002_nircam_clear-f335m_i2d.jpg",
+    "caption": "Find the bright knots and curved wisps around NGC 5462, one of the star-forming regions in the Pinwheel’s arms. This image takes a very close look at one patch of the spiral.",
+    "research": {
+      "summary": "The team proposed comparing infrared emission from carbon-based molecules in six parts of M101 to test how that emission changes with local conditions such as the abundance of elements heavier than helium.",
+      "label": "Read the M101 infrared survey proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=3429"
+    },
+    "program": "3429",
+    "raster_corners": [
+      [
+        210.92968975,
+        54.29275326
+      ],
+      [
+        211.02910659,
+        54.36146092
+      ],
+      [
+        210.97441841,
+        54.38835729
+      ],
+      [
+        210.87502799,
+        54.3196047
+      ]
+    ]
   },
   "m104": {
     "alt": "The Sombrero Galaxy with a bright bulge and a dark, clumpy ring tilted across it.",
     "band": "NIRCam · 0.90–4.44 μm",
-    "credit": "NASA, ESA, CSA, STScI",
+    "credit": "NASA, ESA, CSA, STScI. Image processing: Alyssa Pagan and Joseph DePasquale (STScI).",
     "name": "Sombrero Galaxy",
     "note": "Look for the dark band across the bright bulge. Webb resolves the outer dust ring into mottled clumps.",
     "source": "https://science.nasa.gov/asset/webb/sombrero-galaxy-nircam/",
-    "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2025/06/STScI-01JWC17WKB372KQ7BM0KYZS0J5.png?fit=clip&h=1867&w=2000"
+    "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2025/06/STScI-01JWC17WKB372KQ7BM0KYZS0J5.png?fit=clip&h=1867&w=2000",
+    "caption": "Start with the dark rim crossing the bright bulge. Follow it out to either side and see where the dust ring breaks into clumps. The edge-on view makes it easy to pick out the ring in both telescopes.",
+    "research": {
+      "summary": "Webb’s near-infrared follow-up shows where dust in the outer ring blocks light from stars in the galaxy. The original release compares it with the mid-infrared view of the same ring.",
+      "label": "Read NASA’s Sombrero science release",
+      "url": "https://science.nasa.gov/missions/webb/nasas-webb-rounds-out-picture-of-sombrero-galaxys-disk/"
+    },
+    "program": "6565",
+    "full_url": "https://assets.science.nasa.gov/content/dam/science/missions/webb/science/2025/06/STScI-01JWC17WKB372KQ7BM0KYZS0J5.png",
+    "fallback_url": "https://assets.science.nasa.gov/content/dam/science/missions/webb/science/2025/06/STScI-01JWC17WKB372KQ7BM0KYZS0J5.png/jcr:content/renditions/2000x1867.png",
+    "field_label": "About 6 arcminutes across",
+    "technical": "Near-infrared exposure dates span June 2024 to May 2025."
   },
   "m31": {
     "alt": "Two infrared detector fields filled with faint, closely spaced stars in Andromeda’s disk.",
@@ -247,7 +308,34 @@
     "note": "Webb resolves stars in a small patch of Andromeda’s disk. Use the outline to locate the field in the wider image.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=4735",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw04735-o001_t012_nircam_clear-f356w_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw04735-o001_t012_nircam_clear-f356w_i2d.jpg",
+    "caption": "Use the outline on my Andromeda capture to find this patch of the disk. Look for the brightest points first, then see how crowded the spaces between them get in Webb’s view.",
+    "research": {
+      "summary": "This NIRCam image helped identify stars for a NIRSpec study of red giants in Andromeda’s inner disk. The team uses stellar chemistry to investigate where Andromeda’s stars formed and how its disk grew.",
+      "label": "Read the Andromeda inner-disk proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=4735"
+    },
+    "program": "4735",
+    "field_label": "About 5.1 × 2.2 arcminutes across the detector image",
+    "technical": "White gaps show where the detector mosaic has no coverage.",
+    "raster_corners": [
+      [
+        10.98326816,
+        41.47588023
+      ],
+      [
+        11.04017368,
+        41.40215868
+      ],
+      [
+        11.08274196,
+        41.42060817
+      ],
+      [
+        11.02586865,
+        41.4943507
+      ]
+    ]
   },
   "m33": {
     "alt": "A star-forming region with red, filamentary clouds around a blue cavity.",
@@ -269,7 +357,17 @@
     "note": "Webb zooms into NGC 604, a stellar nursery in the Triangulum Galaxy. Look for the cavities carved by its young stars.",
     "region": true,
     "source": "https://esawebb.org/images/weic2407d/",
-    "url": "https://cdn.esawebb.org/archives/images/screen/weic2407d.jpg"
+    "url": "https://cdn.esawebb.org/archives/images/screen/weic2407d.jpg",
+    "caption": "Look for the big blue-white cavity and follow the orange wisps around its edge. Young, massive stars in NGC 604 push gas and dust outward, leaving the hollows you can see here.",
+    "research": {
+      "summary": "NGC 604 contains a large group of very young massive stars. The Webb observations let astronomers study how their radiation and winds change the nearby gas.",
+      "label": "Read the NGC 604 observing proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=6555"
+    },
+    "program": "6555",
+    "full_url": "https://esawebb.org/media/archives/images/original/weic2407d.tif",
+    "fallback_url": "https://cdn.esawebb.org/archives/images/large/weic2407d.jpg",
+    "technical": "The color channels include filters sensitive to ionized hydrogen, molecular hydrogen, and carbon-rich dust."
   },
   "m42": {
     "alt": "Close-up of the Orion Bar with a bright diagonal ridge and two brilliant stars.",
@@ -291,7 +389,17 @@
     "note": "Webb zooms in on the Orion Bar near the Trapezium. Look for the bright ridge where ultraviolet light from young stars meets dense gas.",
     "region": true,
     "source": "https://esawebb.org/images/weic2315b/",
-    "url": "https://cdn.esawebb.org/archives/images/screen/weic2315b.jpg"
+    "url": "https://cdn.esawebb.org/archives/images/screen/weic2315b.jpg",
+    "caption": "Start with the bright ridge and see how many little ripples you can pick out. That’s the edge of a dense cloud lit by ultraviolet light from the young stars next door. Use the blue outline on my Origin capture to find it in the wider nebula.",
+    "research": {
+      "summary": "Webb spectroscopy detected the methyl cation, CH₃⁺, in the planet-forming disk d203-506, the first detection of this ion outside the Solar System. The team found that ultraviolet radiation drives organic chemistry in the disk.",
+      "label": "Read Berné et al. in Nature",
+      "url": "https://www.nature.com/articles/s41586-023-06307-x"
+    },
+    "program": "1288",
+    "full_url": "https://esawebb.org/media/archives/images/original/weic2315b.tif",
+    "fallback_url": "https://cdn.esawebb.org/archives/images/large/weic2315b.jpg",
+    "technical": "The composite includes filters that pick up molecular hydrogen and emission from carbon-rich molecules."
   },
   "m51": {
     "alt": "The Whirlpool Galaxy with a bright core and reddish dust tracing the spiral arms.",
@@ -312,7 +420,17 @@
     "name": "Whirlpool Galaxy",
     "note": "Trace the spiral arms from the bright core. Webb picks out thin dust filaments and knots of star formation along the same arms.",
     "source": "https://esawebb.org/images/potm2308b/",
-    "url": "https://cdn.esawebb.org/archives/images/publicationjpg/potm2308b.jpg"
+    "url": "https://cdn.esawebb.org/archives/images/publicationjpg/potm2308b.jpg",
+    "caption": "Start at the bright core and take the long way out along a spiral arm. Pick a bright knot you can recognize in both views, then follow the finer streaks around it in Webb’s image.",
+    "research": {
+      "summary": "The FEAST survey combined Webb and Hubble observations of young clusters in M51 and other nearby galaxies to study how long it takes clusters of different masses to emerge from their dusty birth clouds.",
+      "label": "Read the Nature Astronomy study",
+      "url": "https://www.nature.com/articles/s41550-026-02857-y"
+    },
+    "program": "1783",
+    "full_url": "https://esawebb.org/media/archives/images/original/potm2308b.tif",
+    "fallback_url": "https://cdn.esawebb.org/archives/images/screen/potm2308b.jpg",
+    "technical": "This is the NIRCam image from the FEAST program."
   },
   "m81": {
     "alt": "Infrared view of a patch of M81’s inner disk with fine filaments and a bright edge.",
@@ -363,7 +481,14 @@
     "note": "Webb’s field covers a small part of M81’s inner disk, beside the bright core. Look for the fine, bright streaks of dust.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=2016",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw02016-o017_t017_miri_f770w_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw02016-o017_t017_miri_f770w_i2d.jpg",
+    "caption": "Look for the bright center of Bode’s Galaxy, then follow the surrounding inner disk. The blue outline on my capture shows how small this mid-infrared patch is.",
+    "research": {
+      "summary": "The ReveaLLAGN program studied nearby galaxies whose central black holes are accreting at low rates. The infrared observations were designed to help separate the energy sources around those relatively faint nuclei.",
+      "label": "Read the low-luminosity nuclei proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=2016"
+    },
+    "program": "2016"
   },
   "m82": {
     "alt": "The Cigar Galaxy with a bright edge-on disk and warm-colored plumes above and below it.",
@@ -372,7 +497,17 @@
     "name": "Cigar Galaxy",
     "note": "Start with the bright edge-on disk. In Webb’s image, plumes of gas and dust branch away from both sides.",
     "source": "https://science.nasa.gov/asset/webb/m82-cigar-galaxy-nircam-image/",
-    "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2026/06/STScI-01KM3RWWTEHPFZG9QEKE4FZM25.png?w=2000"
+    "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2026/06/STScI-01KM3RWWTEHPFZG9QEKE4FZM25.png?w=2000",
+    "caption": "Start with the long, bright disk of the Cigar Galaxy, then look above and below it. The plumes are part of a powerful wind blowing out of the galaxy’s star-forming center.",
+    "research": {
+      "summary": "The Webb survey traces the starburst in M82 and the material it drives out of the disk. NASA’s comparison shows how the infrared and visible-light views emphasize different parts of the outflow.",
+      "label": "Read the M82 observing proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=5145"
+    },
+    "program": "5145",
+    "full_url": "https://assets.science.nasa.gov/content/dam/science/missions/webb/science/2026/06/STScI-01KM3RWWTEHPFZG9QEKE4FZM25.png",
+    "fallback_url": "https://assets.science.nasa.gov/content/dam/science/missions/webb/science/2026/06/STScI-01KM3RWWTEHPFZG9QEKE4FZM25.png/jcr:content/renditions/2000x1348.png",
+    "field_label": "About 9 arcminutes across"
   },
   "ngc2392": {
     "alt": "A round planetary nebula with a white dwarf inside nested pink and purple shells.",
@@ -393,7 +528,15 @@
     "name": "Lion Nebula (NGC 2392)",
     "note": "My wide capture shows the nebula as a tiny disk. Webb resolves the white dwarf and the rings and dust clumps around it.",
     "source": "https://esawebb.org/images/weic2616a/",
-    "url": "https://cdn.esawebb.org/archives/images/screen/weic2616a.jpg"
+    "url": "https://cdn.esawebb.org/archives/images/screen/weic2616a.jpg",
+    "caption": "Pick out the small bright center, then follow the inner shell around it. The outer material is much fainter. Give your eyes a moment and look for smaller structures across the shell.",
+    "research": {
+      "summary": "The Webb release describes how near- and mid-infrared images distinguish structures in the gas and dust shed by an aging star. The two instruments show different parts of that material.",
+      "label": "Read ESA’s Lion Nebula science release",
+      "url": "https://esawebb.org/news/weic2616/"
+    },
+    "full_url": "https://esawebb.org/media/archives/images/original/weic2616a.tif",
+    "fallback_url": "https://cdn.esawebb.org/archives/images/large/weic2616a.jpg"
   },
   "ngc2403": {
     "alt": "Two infrared detector fields showing individual stars in the outskirts of NGC 2403.",
@@ -456,7 +599,32 @@
     "note": "This Webb pointing samples the outskirts of NGC 2403. The blue outline marks the part of the galaxy where Webb resolves individual stars.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=1638",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw01638-o001_t001_nircam_clear-f356w_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw01638-o001_t001_nircam_clear-f356w_i2d.jpg",
+    "caption": "This patch sits out in the galaxy’s disk. Once you locate it in my wider capture, see how many of Webb’s bright points you can separate from the diffuse background.",
+    "research": {
+      "summary": "The observing program uses the brightest red giant stars to calibrate a way of measuring distances to nearby galaxies. Those measurements help build a distance scale for estimating the expansion rate of the universe.",
+      "label": "Read the red-giant distance proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=1638"
+    },
+    "program": "1638",
+    "raster_corners": [
+      [
+        114.56525296,
+        65.61496574
+      ],
+      [
+        114.52179547,
+        65.53170922
+      ],
+      [
+        114.60896023,
+        65.52390216
+      ],
+      [
+        114.65268384,
+        65.60713368
+      ]
+    ]
   },
   "ngc2903": {
     "alt": "Infrared view of NGC 2903 with a bright elongated center and two curved, knotty spiral arms.",
@@ -535,7 +703,32 @@
     "note": "Start at the central bar and follow it into the inner spiral arms. Webb’s mid-infrared image makes the dusty structure along those arms easy to pick out.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=3707",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw03707-o029_t017_miri_f770w_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw03707-o029_t017_miri_f770w_i2d.jpg",
+    "caption": "Look along the bar and out toward the inner arms. Webb’s 7.7-micron view brings out narrow ridges and bright knots of infrared emission around the galaxy’s center.",
+    "research": {
+      "summary": "The PHANGS-JWST survey maps the gas and dust associated with star formation in nearby galaxies. Observations across many disks help the team compare how the cycle of star formation varies with the local environment.",
+      "label": "Read the PHANGS-JWST survey proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=3707"
+    },
+    "program": "3707",
+    "raster_corners": [
+      [
+        143.05227709,
+        21.44128199
+      ],
+      [
+        143.09066141,
+        21.52602107
+      ],
+      [
+        143.02659887,
+        21.55113207
+      ],
+      [
+        142.98824523,
+        21.46637837
+      ]
+    ]
   },
   "ngc891": {
     "alt": "Close infrared view of NGC 891’s central disk, a thin diagonal band with a bright center.",
@@ -590,7 +783,14 @@
     "note": "Compare the narrow, edge-on disk in my capture with Webb’s close-up. The same central strip is dotted with infrared-bright knots.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=5627",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw05627-o007_t003_nircam_clear-f335m_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw05627-o007_t003_nircam_clear-f335m_i2d.jpg",
+    "caption": "Find the long, thin midplane first. An edge-on galaxy is a good place to look for faint structures above and below the disk, and this Webb field zooms in on that neighborhood.",
+    "research": {
+      "summary": "The team designed this survey to study dust and molecular gas near the bases of winds and fountains in highly inclined galaxies. The edge-on view helps distinguish material within the disk from material rising above it.",
+      "label": "Read the galactic winds survey proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=5627"
+    },
+    "program": "5627"
   },
   "rosette": {
     "alt": "Infrared view of the central star cluster inside the Rosette Nebula.",
@@ -665,6 +865,13 @@
     "note": "Webb images the young cluster NGC 2244 at the center of the Rosette. The wide capture places those stars inside the nebula’s cavity.",
     "region": true,
     "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=4545",
-    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw04545-o001_t001_nircam_clear-f335m_i2d.jpg"
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw04545-o001_t001_nircam_clear-f335m_i2d.jpg",
+    "caption": "Go straight to the star cluster in the middle of the Rosette. Use the outline to find Webb’s little field among the much wider petal-shaped clouds in my Origin image.",
+    "research": {
+      "summary": "Deep imaging in several NIRCam filters was designed to search NGC 2244 for brown dwarfs and objects with planetary masses that drift without a host star.",
+      "label": "Read the Rosette cluster survey proposal",
+      "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=4545"
+    },
+    "program": "4545"
   }
 }
