@@ -97,14 +97,21 @@
           </div>
           <button id="fullscreen-image" type="button" hidden>Exit full screen</button>
           <button id="toggle-clean-view" type="button" aria-pressed="false" hidden>Clean view</button>
+          <div id="capture-navigation" class="capture-navigation" aria-label="Capture navigation" hidden>
+            <button id="previous-capture" type="button" aria-label="Previous capture">‹</button>
+            <span id="capture-position" aria-live="polite"></span>
+            <button id="next-capture" type="button" aria-label="Next capture">›</button>
+          </div>
           <div class="stage-controls">
             <button id="expand-capture" type="button">Full screen</button>
             <button id="toggle-adjustments" type="button" aria-expanded="false" aria-controls="image-adjustments">Adjust image</button>
             <button id="toggle-viewer-tools" type="button" aria-expanded="false" aria-controls="viewer-tools">More</button>
+            <button id="open-webb" type="button" aria-haspopup="dialog" hidden>Compare with Webb</button>
             <div class="viewer-tools" id="viewer-tools">
             <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
             <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
             <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+            <button id="pixel-view" type="button" aria-label="1:1 source pixels" aria-pressed="false" hidden>1:1 pixels</button>
             <a id="detail-file" class="detail-file" target="_blank" rel="noopener" hidden>Open full-resolution file</a>
             <button id="show-details" type="button" aria-haspopup="dialog">ⓘ Details</button>
             <button id="show-watermark" type="button" aria-pressed="false">Watermark</button>
@@ -127,6 +134,27 @@
             <div class="dialog-header"><h2 id="details-heading">Image details</h2><form method="dialog"><button>Close</button></form></div>
             <p id="details-object"></p>
             <dl id="details-fields"></dl>
+          </dialog>
+          <dialog class="journal-dialog webb-dialog" id="webb-dialog" aria-labelledby="webb-title">
+            <div class="dialog-header"><h2 id="webb-title">Compare with Webb</h2><form method="dialog"><button autofocus>Close</button></form></div>
+            <div class="webb-switch" role="group" aria-label="Image to view">
+              <button id="webb-show-capture" type="button" aria-pressed="true">My capture</button>
+              <button id="webb-show-reference" type="button" aria-pressed="false">Webb infrared</button>
+            </div>
+            <div id="webb-images" class="webb-images" data-view="capture">
+              <figure id="webb-capture-panel">
+                <div class="webb-picture"><img id="webb-capture" alt=""><svg id="webb-footprint" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" hidden><polygon/></svg></div>
+                <figcaption id="webb-capture-label"></figcaption>
+              </figure>
+              <figure id="webb-reference-panel">
+                <div class="webb-picture"><img id="webb-reference" referrerpolicy="no-referrer" alt="" hidden><p id="webb-load-status" role="status"></p></div>
+                <figcaption id="webb-reference-label"></figcaption>
+              </figure>
+            </div>
+            <p id="webb-footprint-note" hidden>The blue outline marks Webb’s approximate field of view on my capture.</p>
+            <p id="webb-feature"></p>
+            <p><span id="webb-credit"></span> <a id="webb-license" target="_blank" rel="noopener noreferrer" hidden>CC BY 4.0</a></p>
+            <a id="webb-source" target="_blank" rel="noopener noreferrer">View the official Webb image and downloads ↗</a>
           </dialog>
         </div>
 

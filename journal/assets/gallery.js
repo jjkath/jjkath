@@ -12,6 +12,10 @@
   const stage = byId("stage");
   const viewerFrame = byId("viewer-frame");
   const compactFullScreen = matchMedia("(max-width: 680px), (max-width: 950px) and (max-height: 500px)");
+  const touchScreen = matchMedia("(any-pointer: coarse)");
+  const narrowWebb = matchMedia("(max-width: 680px)");
+  const webbDialog = byId("webb-dialog");
+  const webbReference = byId("webb-reference");
   const adjustmentPanel = byId("image-adjustments");
   const canvas = byId("adjusted");
   const nightImage = byId("night-image");
@@ -90,6 +94,7 @@
   let precisionModel = null;
   let precisionRequest = 0;
   let zoom = 1;
+  let pixelView = false;
   let panX = 0;
   let panY = 0;
   let drag = null;
@@ -187,7 +192,7 @@
   }
 
   function updateCompare() {
-    const splitVisible = compareNights || (activeCompare && !previewOriginal);
+    const splitVisible = compareNights || (activeCompare && !previewOriginal && !pixelView);
     byId("compare").setAttribute("aria-pressed", String(activeCompare));
     byId("compare-nights").setAttribute("aria-pressed", String(compareNights));
     byId("compare-overlay").hidden = !splitVisible;
@@ -305,6 +310,10 @@
     if (detail?.url) file.href = detail.url;
     else file.removeAttribute("href");
     byId("show-details").hidden = compareNights;
+    const webb = byId("open-webb");
+    webb.hidden = compareNights || !currentTarget?.webb;
+    webb.textContent = currentTarget?.webb?.similar ? "Similar object in Webb" : "Compare with Webb";
+    syncCaptureNavigation();
     updateWatermark();
   }
 
@@ -365,8 +374,9 @@
     const locations = [[left,farY],[farX,farY],[left,top],[farX,top],[middle,farY],[middle,top]];
     const obstacles = [
       ...(!byId("sky-layer").hidden ? skyOverlay.children : []),
-      ...(activeCompare && !previewOriginal ? [byId("before-label"),byId("after-label")] : []),
+      ...(activeCompare && !previewOriginal && !pixelView ? [byId("before-label"),byId("after-label")] : []),
       ...(expanded ? [byId("fullscreen-image"),byId("toggle-clean-view")] : []),
+      ...(!byId("capture-navigation").hidden ? [byId("capture-navigation")] : []),
       ...(expanded && compactFullScreen.matches ? byId("toggle-viewer-tools").parentElement.querySelectorAll("button, a, input") : []),
     ].map(element=>element.getBoundingClientRect()).filter(rect=>rect.width>0 || rect.height>0);
     const score = ([localX,localY]) => {
@@ -410,6 +420,63 @@
     viewerFrame.classList.toggle("original-preview",enabled);
     byId("compare").disabled = enabled || byId("adjusted-layer").hidden;
     updateCompare();
+  }
+
+  function syncCaptureNavigation() {
+    const captures = currentTarget?.captures ?? [];
+    const navigation = byId("capture-navigation");
+    navigation.hidden = !expanded || compareNights || captures.length < 2;
+    if (navigation.hidden) return;
+    const index = captures.indexOf(currentCapture);
+    byId("previous-capture").disabled = index <= 0;
+    byId("next-capture").disabled = index >= captures.length-1;
+    byId("capture-position").textContent = `${index+1} of ${captures.length} · ${shortDate.format(new Date(currentCapture.date + "T12:00:00Z"))}`;
+  }
+
+  function stepCapture(offset) {
+    const captures = currentTarget.captures;
+    const next = captures[captures.indexOf(currentCapture) + offset];
+    if (next) location.hash = routeTo(currentTarget,next);
+  }
+
+  function loadWebbReference() {
+    if (!webbDialog.open || (narrowWebb.matches && byId("webb-images").dataset.view !== "reference")) return;
+    if (webbReference.hasAttribute("src")) return;
+    byId("webb-load-status").textContent = "Loading the infrared image…";
+    webbReference.src = currentTarget.webb.url;
+  }
+
+  function selectWebbView(view) {
+    byId("webb-images").dataset.view = view;
+    byId("webb-show-capture").setAttribute("aria-pressed",String(view === "capture"));
+    byId("webb-show-reference").setAttribute("aria-pressed",String(view === "reference"));
+    loadWebbReference();
+  }
+
+  function openWebbComparison() {
+    const reference = currentTarget.webb;
+    const footprint = currentCapture.webb_footprint;
+    const capture = byId("webb-capture");
+    capture.alt = currentTarget.name + " photographed with Celestron Origin";
+    capture.src = currentCapture.full;
+    webbReference.alt = reference.alt;
+    byId("webb-title").textContent = (reference.similar ? "Similar object in Webb" : "Compare with Webb") + " · " + currentTarget.name;
+    byId("webb-show-reference").textContent = reference.similar ? "Webb example" : "Webb infrared";
+    byId("webb-capture-label").textContent = "My capture · " + dateLabel(currentCapture);
+    byId("webb-reference-label").textContent = `${reference.similar ? "Different object" : "Webb infrared"} · ${reference.name} · ${reference.band}`;
+    byId("webb-feature").textContent = reference.note;
+    byId("webb-credit").textContent = "Webb image credit: " + reference.credit;
+    byId("webb-source").href = reference.source;
+    byId("webb-license").hidden = !reference.license;
+    if (reference.license) byId("webb-license").href = reference.license;
+    byId("webb-footprint").toggleAttribute("hidden",!footprint);
+    byId("webb-footprint-note").hidden = !footprint;
+    if (footprint) {
+      const points = footprint.map(point=>point.map(value=>1000*value).join(",")).join(" ");
+      byId("webb-footprint").firstElementChild.setAttribute("points",points);
+    }
+    webbDialog.showModal();
+    selectWebbView("capture");
   }
 
   function loadDetail() {
@@ -472,6 +539,7 @@
     byId("toggle-adjustments").hidden = enabled;
     button.hidden = !enabled;
     byId("toggle-clean-view").hidden = !enabled;
+    syncCaptureNavigation();
     if (wasExpanded !== enabled) {
       cancelTap();
       setCleanView(false);
@@ -480,6 +548,7 @@
     if (enabled) toggleAdjustments(false);
     if (enabled) loadDetail();
     else {
+      if (pixelView) setZoom(1);
       detailRequest++;
       byId("detail-status").hidden = true;
     }
@@ -495,6 +564,11 @@
     if (expanded) {
       if (document.fullscreenElement === viewerFrame) await document.exitFullscreen();
       else displayExpanded(false);
+      return;
+    }
+    // Keep the browser's native exit overlay off the mobile viewer controls.
+    if (compactFullScreen.matches || touchScreen.matches) {
+      displayExpanded(true,true);
       return;
     }
     try {
@@ -701,8 +775,17 @@
   }
 
   function showZoom() {
-    const limitX = Math.max(0,stage.clientWidth*(zoom-1)/2);
-    const limitY = Math.max(0,stage.clientHeight*(zoom-1)/2);
+    const pixelButton = byId("pixel-view");
+    const detail = currentCapture?.detail;
+    const sourceReady = Boolean(detail?.url && baseline.getAttribute("src") === detail.url && baseline.complete && baseline.naturalWidth);
+    const dpr = window.devicePixelRatio || 1;
+    pixelButton.hidden = !expanded || compareNights || !detail?.url;
+    pixelButton.disabled = !sourceReady;
+    if (pixelView && sourceReady && stage.clientWidth && stage.clientHeight) {
+      zoom = Math.max(baseline.naturalWidth/stage.clientWidth,baseline.naturalHeight/stage.clientHeight) / dpr;
+    }
+    const limitX = Math.max(0, (pixelView ? baseline.naturalWidth/dpr-stage.clientWidth : stage.clientWidth*(zoom-1))/2);
+    const limitY = Math.max(0, (pixelView ? baseline.naturalHeight/dpr-stage.clientHeight : stage.clientHeight*(zoom-1))/2);
     panX = Math.max(-limitX,Math.min(limitX,panX));
     panY = Math.max(-limitY,Math.min(limitY,panY));
     const transform = "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")";
@@ -713,11 +796,19 @@
     updateWatermark();
     byId("zoom-out").disabled = zoom <= 1;
     byId("zoom-in").disabled = zoom >= 4;
-    byId("zoom-fit").textContent = zoom > 1 ? Math.round(zoom * 100) + "%" : "Fit";
+    byId("zoom-fit").textContent = pixelView ? "Fit" : zoom > 1 ? Math.round(zoom * 100) + "%" : "Fit";
+  }
+
+  function setPixelView(enabled) {
+    pixelView = enabled;
+    viewerFrame.classList.toggle("pixel-view",enabled);
+    byId("pixel-view").setAttribute("aria-pressed",String(enabled));
+    updateCompare();
   }
 
   function setZoom(next, {anchor,destination=anchor,fromZoom=zoom,fromX=panX,fromY=panY}={}) {
-    const newZoom = Math.min(4, Math.max(1,next));
+    if (pixelView) setPixelView(false);
+    const newZoom = Math.min(Math.max(4,zoom), Math.max(1,next));
     if (anchor) {
       const ratio = newZoom / fromZoom;
       panX = destination.x - (anchor.x-fromX)*ratio;
@@ -732,6 +823,7 @@
     const previousTarget = currentTarget;
     currentTarget = target;
     currentCapture = capture;
+    if (webbDialog.open) webbDialog.close();
     cancelTap();
     setOriginalPreview(false);
     toggleAdjustments(false);
@@ -773,6 +865,7 @@
       if (shared) restoreView(new URLSearchParams(shared));
       return;
     }
+    if (webbDialog.open) webbDialog.close();
     if (expanded) toggleExpanded();
     currentTarget = null;
     currentCapture = null;
@@ -869,7 +962,7 @@
     byId(id).addEventListener("input",queueRender);
     byId(id).addEventListener("change",queueRender);
   }
-  baseline.addEventListener("load",()=>{ syncCaptureTools(); queueRender(); });
+  baseline.addEventListener("load",()=>{ syncCaptureTools(); showZoom(); queueRender(); });
   byId("expand-capture").addEventListener("click",toggleExpanded);
   byId("toggle-adjustments").addEventListener("click",()=>toggleAdjustments(adjustmentPanel.hidden,true));
   byId("preview-original").addEventListener("click",()=>setOriginalPreview(!previewOriginal));
@@ -887,6 +980,33 @@
   });
   byId("fullscreen-image").addEventListener("click",toggleExpanded);
   byId("toggle-clean-view").addEventListener("click",()=>setCleanView(!viewerFrame.classList.contains("clean-view")));
+  byId("previous-capture").addEventListener("click",()=>stepCapture(-1));
+  byId("next-capture").addEventListener("click",()=>stepCapture(1));
+  byId("open-webb").addEventListener("click",openWebbComparison);
+  byId("webb-show-capture").addEventListener("click",()=>selectWebbView("capture"));
+  byId("webb-show-reference").addEventListener("click",()=>selectWebbView("reference"));
+  narrowWebb.addEventListener("change",loadWebbReference);
+  for (const image of [byId("webb-capture"),webbReference]) {
+    image.addEventListener("load",()=>{
+      if (!webbDialog.open || !image.naturalWidth) return;
+      image.parentElement.style.setProperty("--photo-ratio",image.naturalWidth/image.naturalHeight);
+      if (image === webbReference) {
+        image.hidden = false;
+        byId("webb-load-status").textContent = "";
+      }
+    });
+  }
+  webbReference.addEventListener("error",()=>{
+    if (webbDialog.open && webbReference.hasAttribute("src")) {
+      byId("webb-load-status").textContent = "The image could not load here. Open the official Webb image below.";
+    }
+  });
+  webbDialog.addEventListener("close",()=>{
+    if (webbDialog.open) return;
+    webbReference.removeAttribute("src");
+    webbReference.hidden = true;
+    byId("webb-load-status").textContent = "";
+  });
   document.addEventListener("fullscreenchange",()=>{
     if (!viewerFrame.classList.contains("viewport-fill")) displayExpanded(document.fullscreenElement === viewerFrame);
   });
@@ -961,6 +1081,16 @@
   byId("zoom-out").addEventListener("click",()=>setZoom(zoom/1.4));
   byId("zoom-fit").addEventListener("click",()=>setZoom(1));
   byId("zoom-in").addEventListener("click",()=>setZoom(zoom*1.4));
+  byId("pixel-view").addEventListener("click",()=>{
+    if (pixelView) {
+      setZoom(1);
+      return;
+    }
+    panX = panY = 0;
+    setPixelView(true);
+    showZoom();
+    byId("stage-status").textContent = "One source pixel per screen pixel. Showing the lossless image.";
+  });
   function activateStage() {
     if (!adjustmentPanel.hidden) {
       toggleAdjustments(false);

@@ -4,9 +4,11 @@ import base64
 from datetime import date
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import shutil
+from urllib.parse import urlsplit
 
 import yaml
 
@@ -63,6 +65,34 @@ def watermark_file(post):
     fields = ("title", "catalog_id", "capture_date", "integration_seconds")
     stamp = json.dumps([post.get(key) for key in fields], ensure_ascii=False).encode("utf-8")
     return f"{post['capture_id']}-{hashlib.sha256(stamp).hexdigest()[:12]}.webp"
+
+
+def webb_footprint(field, sky):
+    """Project the published Webb field onto the capture's local sky plane."""
+    ra0, dec0 = sky["center"]
+    cosine = math.cos(math.radians(dec0))
+
+    def project(ra, dec):
+        return ((ra - ra0 + 180) % 360 - 180) * cosine, dec - dec0
+
+    top_left, top_right, _, bottom_left = (project(*point) for point in sky["footprint"])
+    x0, y0 = top_left
+    ux, uy = top_right[0] - x0, top_right[1] - y0
+    vx, vy = bottom_left[0] - x0, bottom_left[1] - y0
+    determinant = ux * vy - uy * vx
+    if abs(determinant) < 1e-10:
+        return None
+    cx, cy = project(*field["center"])
+    width, height = (size / 120 for size in field["arcminutes"])
+    angle = math.radians(field["north_left"])
+    cos, sin = math.cos(angle), math.sin(angle)
+    points = []
+    for x, y in ((-width, -height), (width, -height), (width, height), (-width, height)):
+        dx = cx - x0 - x * cos + y * sin
+        dy = cy - y0 - x * sin - y * cos
+        points.append([round((dx * vy - dy * vx) / determinant, 5),
+                       round((ux * dy - uy * dx) / determinant, 5)])
+    return points if all(0 <= n <= 1 for point in points for n in point) else None
 
 
 def read_catalog(site, asset_url):
@@ -122,6 +152,22 @@ def read_catalog(site, asset_url):
         raise ValueError("no capture posts found")
     for target in targets.values():
         target.setdefault("cover", target["captures"][-1]["id"])
+    webb_path = site / "webb.json"
+    if webb_path.is_file():
+        webb = json.loads(webb_path.read_text(encoding="utf-8"))
+        for target_id, entry in webb["targets"].items():
+            target = targets[target_id]
+            reference = webb["references"][entry["reference"]]
+            similar = entry.get("similar", False)
+            image_url = urlsplit(reference["url"])
+            if image_url.scheme != "https" or image_url.netloc not in ("cdn.esawebb.org", "assets.science.nasa.gov"):
+                raise ValueError(f"{target_id}: Webb image URL must use an official NASA or ESA host")
+            target["webb"] = {key: value for key, value in reference.items() if key != "field"}
+            target["webb"].update(note=entry["note"], similar=similar)
+            if not similar and "field" in reference:
+                for capture in target["captures"]:
+                    if capture.get("sky"):
+                        capture["webb_footprint"] = webb_footprint(reference["field"], capture["sky"])
     comparisons = json.loads((site / "alignments.json").read_text(encoding="utf-8"))
     for target_id, alignment in comparisons.items():
         target = targets[target_id]
