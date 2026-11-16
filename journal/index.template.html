@@ -98,16 +98,16 @@
           <button id="fullscreen-image" type="button" hidden>Exit full screen</button>
           <button id="toggle-clean-view" type="button" aria-pressed="false" hidden>Clean view</button>
           <div class="stage-controls">
-            <div id="capture-navigation" class="capture-navigation" role="group" aria-label="Capture navigation" hidden>
-              <button id="previous-capture" type="button" aria-label="Previous capture">‹</button>
-              <span aria-live="polite"><span id="capture-position"></span><span id="capture-date"></span></span>
-              <button id="next-capture" type="button" aria-label="Next capture">›</button>
-            </div>
             <button id="expand-capture" type="button">Full screen</button>
-            <button id="toggle-adjustments" type="button" aria-expanded="false" aria-controls="image-adjustments">Adjust image</button>
             <button id="toggle-viewer-tools" type="button" aria-expanded="false" aria-controls="viewer-tools">More</button>
             <div class="viewer-rail" id="viewer-rail">
               <div class="viewer-options" id="viewer-options">
+                <button id="toggle-adjustments" type="button" aria-expanded="false" aria-controls="image-adjustments">Adjust image</button>
+                <div id="capture-navigation" class="capture-navigation" role="group" aria-label="Capture navigation" hidden>
+                  <button id="previous-capture" type="button" aria-label="Previous capture">‹</button>
+                  <span aria-live="polite"><span id="capture-position"></span><span id="capture-date"></span></span>
+                  <button id="next-capture" type="button" aria-label="Next capture">›</button>
+                </div>
                 <label id="compare-range" class="compare-range" hidden><span id="split-label" class="sr-only">Before and after divider</span>
                   <input id="split" type="range" min="0" max="100" value="50">
                 </label>
@@ -143,13 +143,17 @@
           <dialog class="journal-dialog webb-dialog" id="webb-dialog" aria-labelledby="webb-title">
             <div class="dialog-header"><h2 id="webb-title">Compare with Webb</h2><form method="dialog"><button autofocus>Close</button></form></div>
             <div class="webb-switch" role="group" aria-label="Image to view">
-              <button id="webb-show-capture" type="button" aria-pressed="true">My capture</button>
+              <button id="webb-show-capture" type="button" aria-pressed="true">My image</button>
               <button id="webb-show-reference" type="button" aria-pressed="false">Webb infrared</button>
             </div>
             <div id="webb-images" class="webb-images" data-view="capture">
               <figure id="webb-capture-panel">
-                <div class="webb-picture"><img id="webb-capture" alt=""><svg id="webb-footprint" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" hidden><polygon/></svg></div>
-                <figcaption id="webb-capture-label"></figcaption>
+                <div class="webb-picture">
+                  <img id="webb-capture" alt="">
+                  <canvas id="webb-edit-image" role="img" hidden></canvas>
+                  <svg id="webb-footprint" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" hidden><polygon/></svg>
+                </div>
+                <figcaption><span id="webb-capture-label" aria-live="polite"></span> <button id="webb-show-edit" type="button" hidden>Show my edit</button></figcaption>
               </figure>
               <figure id="webb-reference-panel">
                 <div class="webb-picture"><img id="webb-reference" referrerpolicy="no-referrer" alt="" hidden><p id="webb-load-status" role="status"></p></div>
@@ -159,7 +163,11 @@
             <p id="webb-footprint-note" hidden>The blue outline marks Webb’s approximate field of view on my capture.</p>
             <p id="webb-feature"></p>
             <p><span id="webb-credit"></span> <a id="webb-license" target="_blank" rel="noopener noreferrer" hidden>CC BY 4.0</a></p>
-            <a id="webb-source" target="_blank" rel="noopener noreferrer">View the official Webb image and downloads ↗</a>
+            <div class="webb-actions">
+              <a id="webb-open-image" target="_blank" rel="noopener noreferrer">Open Webb image ↗</a>
+              <a id="webb-source" target="_blank" rel="noopener noreferrer">Official release and downloads ↗</a>
+            </div>
+            <button id="webb-try-look" type="button">Try Webb Dust on my capture</button>
           </dialog>
         </div>
 
@@ -172,9 +180,19 @@
             </div>
           </div>
           <button id="preview-original" class="precision" type="button" aria-pressed="false" disabled>Original preview</button>
-          <button id="precision" class="precision" type="button" aria-pressed="false" hidden>16-bit source</button>
           <p id="precision-status" class="processing-hint" role="status" hidden></p>
           <div id="presets" class="presets" aria-label="Processing presets"></div>
+          <p class="processing-hint" id="processing-hint">Choose a preset to start.</p>
+          <div class="sliders quick-sliders">
+            <label for="midtone">Brightness <output id="midtone-value" for="midtone"></output></label>
+            <input type="range" id="midtone" min="-40" max="80" value="0">
+            <label for="structure">Detail <output id="structure-value" for="structure"></output></label>
+            <input type="range" id="structure" min="0" max="100" value="0">
+            <label id="saturation-label" for="saturation">Color <output id="saturation-value" for="saturation"></output></label>
+            <input type="range" id="saturation" min="0" max="200" value="100">
+            <label id="palette-blend-label" for="palette-blend" hidden>Palette mix <output id="palette-blend-value" for="palette-blend"></output></label>
+            <input type="range" id="palette-blend" min="0" max="100" value="0" hidden>
+          </div>
           <label id="palette-control" class="field" hidden>Palette
             <select id="palette">
               <option value="gold">Gold / Blue</option>
@@ -183,13 +201,10 @@
               <option value="inferno">Inferno</option>
             </select>
           </label>
-          <p class="processing-hint" id="processing-hint">Choose a preset to start.</p>
-          <div class="sliders structure-control">
-            <label for="structure">Structure strength <output id="structure-value" for="structure"></output></label>
-            <input type="range" id="structure" min="0" max="100" value="0">
-          </div>
           <details id="tone-controls">
-            <summary>Histogram &amp; stretch</summary>
+            <summary>Advanced adjustments</summary>
+            <label class="field">All presets <select id="all-presets"></select></label>
+            <button id="precision" class="precision" type="button" aria-pressed="false" hidden>16-bit source</button>
             <canvas id="histogram" class="histogram" width="440" height="160" role="img" aria-label="Brightness histogram and stretch curve"></canvas>
             <label class="field">Stretch curve
               <select id="stretch">
@@ -197,15 +212,6 @@
                 <option value="asinh">Asinh</option>
               </select>
             </label>
-            <div class="sliders">
-              <label for="black">Black point <output id="black-value" for="black"></output></label>
-              <input type="range" id="black" min="0" max="30" step="0.1" value="0">
-              <label for="white">White point <output id="white-value" for="white"></output></label>
-              <input type="range" id="white" min="1" max="100" step="0.1" value="100">
-            </div>
-          </details>
-          <details id="fine-structure">
-            <summary>Fine adjustments</summary>
             <label class="field">Detail scale
               <select id="scale">
                 <option value="fine">Fine detail</option>
@@ -214,10 +220,10 @@
               </select>
             </label>
             <div class="sliders">
-              <label for="midtone">Midtones <output id="midtone-value" for="midtone"></output></label>
-              <input type="range" id="midtone" min="-40" max="80" value="0">
-              <label for="saturation">Saturation <output id="saturation-value" for="saturation"></output></label>
-              <input type="range" id="saturation" min="0" max="200" value="100">
+              <label for="black">Black point <output id="black-value" for="black"></output></label>
+              <input type="range" id="black" min="0" max="30" step="0.1" value="0">
+              <label for="white">White point <output id="white-value" for="white"></output></label>
+              <input type="range" id="white" min="1" max="100" step="0.1" value="100">
               <label for="warm">Warmth <output id="warm-value" for="warm"></output></label>
               <input type="range" id="warm" min="0" max="35" value="0">
               <label for="smoothing">Background smoothing <output id="smoothing-value" for="smoothing"></output></label>
@@ -226,6 +232,16 @@
               <input type="range" id="stars" min="0" max="100" value="0">
               <label class="checkbox"><input type="checkbox" id="highlights" checked> Protect bright stars</label>
             </div>
+          </details>
+          <details id="look-tools">
+            <summary>Save or download</summary>
+            <div class="look-actions">
+              <button id="save-look" type="button">Save look</button>
+              <button id="load-look" type="button" disabled>Load saved look</button>
+              <button id="export-edit" type="button" disabled>Export edited PNG</button>
+              <a id="download-edit" hidden>Download again ↗</a>
+            </div>
+            <p id="look-status" class="processing-hint" role="status">Save one look per target on this device.</p>
           </details>
         </aside>
       </div>
@@ -239,6 +255,20 @@
         <h2 id="captures-title"></h2><div id="capture-choices" class="capture-choices"></div>
       </section>
     </article>
+  </main>
+  <main id="webb-image-page" class="webb-image-page" aria-labelledby="webb-image-title" hidden>
+    <a id="webb-image-back">← Back to my capture</a>
+    <h1 id="webb-image-title"></h1>
+    <p id="webb-image-band"></p>
+    <figure>
+      <p id="webb-image-status" role="status"></p>
+      <img id="webb-image-full" referrerpolicy="no-referrer" alt="" hidden>
+      <figcaption id="webb-image-credit"></figcaption>
+    </figure>
+    <div class="webb-actions">
+      <a id="webb-image-download" target="_blank" rel="noopener noreferrer">Download archive image ↗</a>
+      <a id="webb-image-program" target="_blank" rel="noopener noreferrer">Webb observing program ↗</a>
+    </div>
   </main>
 
   <dialog class="journal-dialog" id="sky-dialog" aria-labelledby="map-title">

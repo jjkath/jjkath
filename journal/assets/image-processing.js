@@ -161,6 +161,15 @@ const astroProcessing = (() => {
     const curve = toneCurve(settings,toneReference);
     const shadow = curve[Math.round(sky)];
     const noiseGate = adaptive ? Math.min(3.8, noise * 1.9) : 0;
+    let paletteChroma = null;
+    if (palette && settings.paletteBlend !== undefined) {
+      paletteChroma = Float32Array.from(palette);
+      for (let i = 0; i < palette.length; i += 3) {
+        const luma = .2126*palette[i] + .7152*palette[i+1] + .0722*palette[i+2];
+        for (let channel = 0; channel < 3; channel++) paletteChroma[i+channel] -= luma;
+      }
+    }
+    const blendStrength = (settings.paletteBlend ?? 0) / 100;
 
     for (let pixel = 0, i = 0; i < data.length; pixel++, i += 4) {
       const y = luminance[pixel];
@@ -186,8 +195,9 @@ const astroProcessing = (() => {
         : 0;
       const stretch = mapped - core;
       const lift = y > 0 ? Math.min(3.2 + .023 * y, stretch / y) : 0;
-      const paletteOffset = Math.round(adaptive ? clamp((stretch-shadow)*1.27,0,255) : stretch) * 3;
-      const paletteMix = adaptive ? unit((y - sky - noiseGate) / (10 + 2*noiseGate)) : 1;
+      const paletteSignal = paletteChroma ? curve[Math.round(medium[pixel])] : stretch;
+      const paletteOffset = Math.round(adaptive ? clamp((paletteSignal-shadow)*1.27,0,255) : paletteSignal) * 3;
+      const paletteMix = adaptive ? unit(((paletteChroma ? Math.min(y,medium[pixel]) : y) - sky - noiseGate) / (10 + 2*noiseGate)) : 1;
       const diffuseSignal = unit((medium[pixel] - 4) / 22);
       const tint = settings.warm * diffuseSignal * unit((115 - y) / 60) * (1 - compact) * (adaptive ? aboveSky : 1);
       const cloudColor = settings.effect === "cloud-color"
@@ -198,9 +208,16 @@ const astroProcessing = (() => {
       const suppress = reduceStars * compact * .76;
       const floor = curve[Math.round(medium[pixel])];
       const chromaGain = lift * adjustedSaturation;
-      const red = (data[i]-y)*chromaGain + tint;
-      const green = (data[i+1]-y)*chromaGain - .29*tint;
-      const blue = (data[i+2]-y)*chromaGain - .07*tint;
+      let red = (data[i]-y)*chromaGain + tint;
+      let green = (data[i+1]-y)*chromaGain - .29*tint;
+      let blue = (data[i+2]-y)*chromaGain - .07*tint;
+      if (paletteChroma) {
+        // Blend color at fixed brightness and favor diffuse structure over the sky and stars.
+        const blend = blendStrength * paletteMix * (1 - .95*compact);
+        red += blend * (paletteChroma[paletteOffset] - red);
+        green += blend * (paletteChroma[paletteOffset+1] - green);
+        blue += blend * (paletteChroma[paletteOffset+2] - blue);
+      }
       const low = Math.min(red,green,blue);
       const high = Math.max(red,green,blue);
       const gamut = adaptive ? Math.min(1,low < 0 ? stretch/-low : 1,high > 0 ? (255-stretch)/high : 1) : 1;
@@ -208,7 +225,7 @@ const astroProcessing = (() => {
         const sample = data[i + channel];
         const chroma = channel === 0 ? red : channel === 1 ? green : blue;
         const color = stretch + gamut*chroma;
-        const changed = palette ? stretch + paletteMix*(palette[paletteOffset + channel]-stretch) : color;
+        const changed = palette && !paletteChroma ? stretch + paletteMix*(palette[paletteOffset + channel]-stretch) : color;
         const protectedColor = changed + protection * (sample - changed);
         output[i + channel] = protectedColor - suppress * Math.max(0, protectedColor - floor);
       }
