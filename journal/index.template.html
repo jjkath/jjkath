@@ -159,23 +159,37 @@
             </div>
             <div id="webb-images" class="webb-images" data-view="capture">
               <figure id="webb-capture-panel">
-                <div class="webb-picture">
-                  <img id="webb-capture" alt="">
-                  <canvas id="webb-edit-image" role="img" hidden></canvas>
+                <div class="webb-picture" role="group" aria-label="Origin image">
+                  <div id="webb-capture-layer" class="webb-photo-layer">
+                    <img id="webb-capture" alt="">
+                    <canvas id="webb-edit-image" role="img" hidden></canvas>
+                  </div>
                   <svg id="webb-footprint" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" hidden><polygon/></svg>
                 </div>
                 <figcaption><span id="webb-capture-label" aria-live="polite"></span> <button id="webb-show-edit" type="button" hidden>Show my edit</button></figcaption>
               </figure>
               <figure id="webb-reference-panel">
-                <div class="webb-picture"><img id="webb-reference" referrerpolicy="no-referrer" alt="" hidden><p id="webb-load-status" role="status"></p></div>
+                <div class="webb-picture" role="group" aria-label="Webb infrared image">
+                  <div id="webb-reference-layer" class="webb-photo-layer"><img id="webb-reference" referrerpolicy="no-referrer" alt="" hidden></div>
+                  <p id="webb-load-status" role="status"></p>
+                </div>
                 <figcaption id="webb-reference-label"></figcaption>
               </figure>
             </div>
-            <p id="webb-footprint-note" hidden>The blue outline marks Webb’s approximate field of view on my capture.</p>
+            <div id="webb-field-controls" class="webb-field-controls" hidden>
+              <button id="webb-focus-field" type="button">Zoom to Webb field</button>
+              <div id="webb-field-zoom" class="webb-field-zoom" role="group" aria-label="Zoom both images" hidden>
+                <button id="webb-zoom-out" type="button" aria-label="Zoom both images out">−</button>
+                <button id="webb-zoom-reset" type="button" aria-label="Reset matched view">100%</button>
+                <button id="webb-zoom-in" type="button" aria-label="Zoom both images in">+</button>
+              </div>
+            </div>
+            <p id="webb-footprint-note" aria-live="polite" hidden></p>
+            <button id="webb-retry" type="button" hidden>Retry Webb image</button>
             <p id="webb-feature"></p>
             <p><span id="webb-credit"></span> <a id="webb-license" target="_blank" rel="noopener noreferrer" hidden>CC BY 4.0</a></p>
             <div class="webb-actions">
-              <a id="webb-open-image" target="_blank" rel="noopener noreferrer">Open Webb image ↗</a>
+              <a id="webb-open-image" target="_blank" rel="noopener">Webb image &amp; science ↗</a>
               <a id="webb-source" target="_blank" rel="noopener noreferrer">Official release and downloads ↗</a>
             </div>
             <button id="webb-try-look" type="button">Try Webb Dust on my capture</button>
@@ -269,16 +283,32 @@
   </main>
   <main id="webb-image-page" class="webb-image-page" aria-labelledby="webb-image-title" hidden>
     <a id="webb-image-back">← Back to my capture</a>
-    <h1 id="webb-image-title"></h1>
+    <h1 id="webb-image-title" tabindex="-1"></h1>
     <p id="webb-image-band"></p>
     <figure>
       <p id="webb-image-status" role="status"></p>
       <img id="webb-image-full" referrerpolicy="no-referrer" alt="" hidden>
-      <figcaption id="webb-image-credit"></figcaption>
+      <figcaption><span id="webb-image-credit"></span> <a id="webb-image-license" target="_blank" rel="noopener noreferrer" hidden>CC BY 4.0</a></figcaption>
     </figure>
+    <button id="webb-image-retry" type="button" hidden>Retry Webb image</button>
     <div class="webb-actions">
-      <a id="webb-image-download" target="_blank" rel="noopener noreferrer">Download archive image ↗</a>
-      <a id="webb-image-program" target="_blank" rel="noopener noreferrer">Webb observing program ↗</a>
+      <a id="webb-image-download" target="_blank" rel="noopener noreferrer">Open image file ↗</a>
+      <a id="webb-image-program" target="_blank" rel="noopener noreferrer">Official source ↗</a>
+    </div>
+    <div class="webb-image-notes">
+      <section aria-labelledby="webb-look-heading">
+        <h2 id="webb-look-heading">What to look for</h2>
+        <p id="webb-image-caption"></p>
+      </section>
+      <section aria-labelledby="webb-details-heading">
+        <h2 id="webb-details-heading">Image details</h2>
+        <dl id="webb-image-fields"></dl>
+      </section>
+      <section class="webb-image-research" aria-labelledby="webb-research-heading">
+        <h2 id="webb-research-heading">The science</h2>
+        <p id="webb-research-summary"></p>
+        <a id="webb-research-link" target="_blank" rel="noopener noreferrer"></a>
+      </section>
     </div>
   </main>
 
