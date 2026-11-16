@@ -82,14 +82,18 @@ def webb_footprint(field, sky):
     determinant = ux * vy - uy * vx
     if abs(determinant) < 1e-10:
         return None
-    cx, cy = project(*field["center"])
-    width, height = (size / 120 for size in field["arcminutes"])
-    angle = math.radians(field["north_left"])
-    cos, sin = math.cos(angle), math.sin(angle)
+    if "corners" in field:
+        corners = [project(*point) for point in field["corners"]]
+    else:
+        cx, cy = project(*field["center"])
+        width, height = (size / 120 for size in field["arcminutes"])
+        angle = math.radians(field["north_left"])
+        cos, sin = math.cos(angle), math.sin(angle)
+        offsets = ((-width, -height), (width, -height), (width, height), (-width, height))
+        corners = [(cx - x * cos + y * sin, cy - x * sin - y * cos) for x, y in offsets]
     points = []
-    for x, y in ((-width, -height), (width, -height), (width, height), (-width, height)):
-        dx = cx - x0 - x * cos + y * sin
-        dy = cy - y0 - x * sin - y * cos
+    for x, y in corners:
+        dx, dy = x - x0, y - y0
         points.append([round((dx * vy - dy * vx) / determinant, 5),
                        round((ux * dy - uy * dx) / determinant, 5)])
     return points if all(0 <= n <= 1 for point in points for n in point) else None
@@ -154,20 +158,24 @@ def read_catalog(site, asset_url):
         target.setdefault("cover", target["captures"][-1]["id"])
     webb_path = site / "webb.json"
     if webb_path.is_file():
-        webb = json.loads(webb_path.read_text(encoding="utf-8"))
-        for target_id, entry in webb["targets"].items():
+        for target_id, reference in json.loads(webb_path.read_text(encoding="utf-8")).items():
             target = targets[target_id]
-            reference = webb["references"][entry["reference"]]
-            similar = entry.get("similar", False)
             image_url = urlsplit(reference["url"])
-            if image_url.scheme != "https" or image_url.netloc not in ("cdn.esawebb.org", "assets.science.nasa.gov"):
-                raise ValueError(f"{target_id}: Webb image URL must use an official NASA or ESA host")
-            target["webb"] = {key: value for key, value in reference.items() if key != "field"}
-            target["webb"].update(note=entry["note"], similar=similar)
-            if not similar and "field" in reference:
-                for capture in target["captures"]:
-                    if capture.get("sky"):
-                        capture["webb_footprint"] = webb_footprint(reference["field"], capture["sky"])
+            if image_url.scheme != "https" or image_url.netloc not in ("cdn.esawebb.org", "assets.science.nasa.gov", "mast.stsci.edu"):
+                raise ValueError(f"{target_id}: Webb image URL must use an official Webb archive")
+            fields = {key: value for key, value in reference.items()
+                      if key not in ("field", "region", "capture_footprints")}
+            registered = reference.get("capture_footprints", {})
+            if not registered.keys() <= {capture["id"] for capture in target["captures"]}:
+                raise ValueError(f"{target_id}: a Webb footprint names an unknown capture")
+            if reference.get("region") and not reference.get("field"):
+                raise ValueError(f"{target_id}: a regional Webb comparison needs a published field of view")
+            for capture in target["captures"]:
+                footprint = registered.get(capture["id"])
+                if footprint is None and "field" in reference and "sky" in capture:
+                    footprint = webb_footprint(reference["field"], capture["sky"])
+                if footprint or not reference.get("region"):
+                    capture["webb"] = {**fields, "footprint":footprint}
     comparisons = json.loads((site / "alignments.json").read_text(encoding="utf-8"))
     for target_id, alignment in comparisons.items():
         target = targets[target_id]

@@ -97,34 +97,39 @@
           </div>
           <button id="fullscreen-image" type="button" hidden>Exit full screen</button>
           <button id="toggle-clean-view" type="button" aria-pressed="false" hidden>Clean view</button>
-          <div id="capture-navigation" class="capture-navigation" aria-label="Capture navigation" hidden>
-            <button id="previous-capture" type="button" aria-label="Previous capture">‹</button>
-            <span id="capture-position" aria-live="polite"></span>
-            <button id="next-capture" type="button" aria-label="Next capture">›</button>
-          </div>
           <div class="stage-controls">
+            <div id="capture-navigation" class="capture-navigation" role="group" aria-label="Capture navigation" hidden>
+              <button id="previous-capture" type="button" aria-label="Previous capture">‹</button>
+              <span aria-live="polite"><span id="capture-position"></span><span id="capture-date"></span></span>
+              <button id="next-capture" type="button" aria-label="Next capture">›</button>
+            </div>
             <button id="expand-capture" type="button">Full screen</button>
             <button id="toggle-adjustments" type="button" aria-expanded="false" aria-controls="image-adjustments">Adjust image</button>
             <button id="toggle-viewer-tools" type="button" aria-expanded="false" aria-controls="viewer-tools">More</button>
-            <button id="open-webb" type="button" aria-haspopup="dialog" hidden>Compare with Webb</button>
-            <div class="viewer-tools" id="viewer-tools">
-            <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
-            <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
-            <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
-            <button id="pixel-view" type="button" aria-label="1:1 source pixels" aria-pressed="false" hidden>1:1 pixels</button>
-            <a id="detail-file" class="detail-file" target="_blank" rel="noopener" hidden>Open full-resolution file</a>
-            <button id="show-details" type="button" aria-haspopup="dialog">ⓘ Details</button>
-            <button id="show-watermark" type="button" aria-pressed="false">Watermark</button>
-            <button id="compare" type="button" aria-pressed="false" disabled>Before / after</button>
-            <button id="objects" type="button" aria-pressed="false" hidden>Object labels</button>
-            <button id="sky-map" type="button" hidden>Sky map</button>
-            <button id="replay" type="button" hidden>Stack replay</button>
-            <button id="share-view" type="button">Share view</button>
-            <button id="night-split" type="button" hidden>Show split</button>
+            <div class="viewer-rail" id="viewer-rail">
+              <div class="viewer-options" id="viewer-options">
+                <label id="compare-range" class="compare-range" hidden><span id="split-label" class="sr-only">Before and after divider</span>
+                  <input id="split" type="range" min="0" max="100" value="50">
+                </label>
+                <button id="open-webb" type="button" aria-haspopup="dialog" hidden>Compare with Webb</button>
+                <div class="viewer-tools" id="viewer-tools">
+                  <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+                  <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
+                  <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+                  <button id="pixel-view" type="button" aria-label="1:1 source pixels" aria-pressed="false" hidden>1:1 pixels</button>
+                  <button id="show-details" type="button" aria-haspopup="dialog">ⓘ Details</button>
+                  <button id="show-watermark" type="button" aria-pressed="false">Watermark</button>
+                  <button id="compare" type="button" aria-pressed="false" disabled>Before / after</button>
+                  <button id="objects" type="button" aria-pressed="false" hidden>Object labels</button>
+                  <button id="sky-map" type="button" hidden>Sky map</button>
+                  <button id="replay" type="button" hidden>Stack replay</button>
+                  <button id="share-view" type="button">Share view</button>
+                  <a id="detail-file" class="detail-file" target="_blank" rel="noopener" hidden>Open full-resolution file</a>
+                  <button id="night-split" type="button" hidden>Show split</button>
+                </div>
+              </div>
+              <button id="scroll-viewer-tools" type="button" aria-label="Scroll to more tools" title="Scroll to more tools" hidden>›</button>
             </div>
-            <label id="compare-range" class="compare-range" hidden><span id="split-label" class="sr-only">Before and after divider</span>
-              <input id="split" type="range" min="0" max="100" value="50">
-            </label>
           </div>
           <p id="night-status" class="night-status" role="status" hidden></p>
           <p id="detail-status" class="night-status" role="status" hidden></p>

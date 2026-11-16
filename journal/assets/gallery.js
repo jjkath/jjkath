@@ -11,6 +11,9 @@
   const baseline = byId("baseline");
   const stage = byId("stage");
   const viewerFrame = byId("viewer-frame");
+  const viewerRail = byId("viewer-rail");
+  const viewerOptions = byId("viewer-options");
+  const scrollTools = byId("scroll-viewer-tools");
   const compactFullScreen = matchMedia("(max-width: 680px), (max-width: 950px) and (max-height: 500px)");
   const touchScreen = matchMedia("(any-pointer: coarse)");
   const narrowWebb = matchMedia("(max-width: 680px)");
@@ -310,9 +313,7 @@
     if (detail?.url) file.href = detail.url;
     else file.removeAttribute("href");
     byId("show-details").hidden = compareNights;
-    const webb = byId("open-webb");
-    webb.hidden = compareNights || !currentTarget?.webb;
-    webb.textContent = currentTarget?.webb?.similar ? "Similar object in Webb" : "Compare with Webb";
+    byId("open-webb").hidden = compareNights || !currentCapture?.webb;
     syncCaptureNavigation();
     updateWatermark();
   }
@@ -376,8 +377,6 @@
       ...(!byId("sky-layer").hidden ? skyOverlay.children : []),
       ...(activeCompare && !previewOriginal && !pixelView ? [byId("before-label"),byId("after-label")] : []),
       ...(expanded ? [byId("fullscreen-image"),byId("toggle-clean-view")] : []),
-      ...(!byId("capture-navigation").hidden ? [byId("capture-navigation")] : []),
-      ...(expanded && compactFullScreen.matches ? byId("toggle-viewer-tools").parentElement.querySelectorAll("button, a, input") : []),
     ].map(element=>element.getBoundingClientRect()).filter(rect=>rect.width>0 || rect.height>0);
     const score = ([localX,localY]) => {
       const a = stageBox.left + localX;
@@ -403,8 +402,25 @@
     const button = byId("toggle-viewer-tools");
     viewerFrame.classList.toggle("tools-open", open);
     button.setAttribute("aria-expanded", String(open));
+    button.setAttribute("aria-controls", expanded ? "viewer-rail" : "viewer-tools");
     button.textContent = expanded ? (open ? "Hide controls" : "Controls") : (open ? "Less" : "More");
+    if (expanded && open) viewerOptions.scrollLeft = 0;
     requestAnimationFrame(showZoom);
+  }
+
+  function toolsAtEnd() {
+    return viewerOptions.scrollLeft + viewerOptions.clientWidth >= viewerOptions.scrollWidth - 2;
+  }
+
+  function syncToolScroll() {
+    const overflowing = expanded && viewerRail.clientWidth > 0 && viewerOptions.scrollWidth > viewerRail.clientWidth + 1;
+    scrollTools.hidden = !overflowing;
+    if (!overflowing) return;
+    const atEnd = toolsAtEnd();
+    const label = atEnd ? "Back to first tools" : "Scroll to more tools";
+    scrollTools.textContent = atEnd ? "↶" : "›";
+    scrollTools.setAttribute("aria-label",label);
+    scrollTools.title = label;
   }
 
   function setCleanView(enabled) {
@@ -430,7 +446,8 @@
     const index = captures.indexOf(currentCapture);
     byId("previous-capture").disabled = index <= 0;
     byId("next-capture").disabled = index >= captures.length-1;
-    byId("capture-position").textContent = `${index+1} of ${captures.length} · ${shortDate.format(new Date(currentCapture.date + "T12:00:00Z"))}`;
+    byId("capture-position").textContent = `${index+1} of ${captures.length}`;
+    byId("capture-date").textContent = ` · ${shortDate.format(new Date(currentCapture.date + "T12:00:00Z"))}`;
   }
 
   function stepCapture(offset) {
@@ -443,7 +460,7 @@
     if (!webbDialog.open || (narrowWebb.matches && byId("webb-images").dataset.view !== "reference")) return;
     if (webbReference.hasAttribute("src")) return;
     byId("webb-load-status").textContent = "Loading the infrared image…";
-    webbReference.src = currentTarget.webb.url;
+    webbReference.src = currentCapture.webb.url;
   }
 
   function selectWebbView(view) {
@@ -454,19 +471,22 @@
   }
 
   function openWebbComparison() {
-    const reference = currentTarget.webb;
-    const footprint = currentCapture.webb_footprint;
+    const reference = currentCapture?.webb;
+    if (!reference) return;
+    const footprint = reference.footprint;
     const capture = byId("webb-capture");
     capture.alt = currentTarget.name + " photographed with Celestron Origin";
     capture.src = currentCapture.full;
     webbReference.alt = reference.alt;
-    byId("webb-title").textContent = (reference.similar ? "Similar object in Webb" : "Compare with Webb") + " · " + currentTarget.name;
-    byId("webb-show-reference").textContent = reference.similar ? "Webb example" : "Webb infrared";
+    byId("webb-title").textContent = "Compare with Webb · " + currentTarget.name;
     byId("webb-capture-label").textContent = "My capture · " + dateLabel(currentCapture);
-    byId("webb-reference-label").textContent = `${reference.similar ? "Different object" : "Webb infrared"} · ${reference.name} · ${reference.band}`;
+    const referenceType = reference.archive ? "Webb archive" : "Webb infrared";
+    byId("webb-reference-label").textContent = `${referenceType} · ${reference.name} · ${reference.band}`;
     byId("webb-feature").textContent = reference.note;
     byId("webb-credit").textContent = "Webb image credit: " + reference.credit;
-    byId("webb-source").href = reference.source;
+    const source = byId("webb-source");
+    source.href = reference.source;
+    source.textContent = reference.archive ? "View the Webb observing program ↗" : "View the official Webb image and downloads ↗";
     byId("webb-license").hidden = !reference.license;
     if (reference.license) byId("webb-license").href = reference.license;
     byId("webb-footprint").toggleAttribute("hidden",!footprint);
@@ -543,7 +563,10 @@
     if (wasExpanded !== enabled) {
       cancelTap();
       setCleanView(false);
-      showViewerTools(false);
+      const nightOptions = byId("night-options");
+      if (enabled) viewerOptions.prepend(nightOptions);
+      else stage.before(nightOptions);
+      showViewerTools(enabled && !compactFullScreen.matches && !touchScreen.matches);
     }
     if (enabled) toggleAdjustments(false);
     if (enabled) loadDetail();
@@ -968,6 +991,14 @@
   byId("preview-original").addEventListener("click",()=>setOriginalPreview(!previewOriginal));
   byId("close-adjustments").addEventListener("click",()=>toggleAdjustments(false,true));
   byId("toggle-viewer-tools").addEventListener("click",()=>showViewerTools(!viewerFrame.classList.contains("tools-open")));
+  scrollTools.addEventListener("click",()=>{
+    const left = toolsAtEnd() ? 0 : viewerOptions.scrollLeft + Math.max(44,viewerOptions.clientWidth-44);
+    viewerOptions.scrollTo({left,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
+  });
+  viewerOptions.addEventListener("scroll",syncToolScroll,{passive:true});
+  const toolLayout = new ResizeObserver(syncToolScroll);
+  toolLayout.observe(viewerRail);
+  for (const control of viewerOptions.querySelectorAll("button, a, .compare-range")) toolLayout.observe(control);
   byId("watermark-art").addEventListener("load",()=>{
     byId("watermark-art").hidden = false;
     byId("watermark").classList.add("has-artwork");
@@ -998,7 +1029,7 @@
   }
   webbReference.addEventListener("error",()=>{
     if (webbDialog.open && webbReference.hasAttribute("src")) {
-      byId("webb-load-status").textContent = "The image could not load here. Open the official Webb image below.";
+      byId("webb-load-status").textContent = "The image could not load here. Open the Webb source below.";
     }
   });
   webbDialog.addEventListener("close",()=>{
