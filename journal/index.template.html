@@ -42,7 +42,20 @@
           <input id="search" type="search" placeholder="Search a target or catalog ID" autocomplete="off">
         </label>
       </div>
-      <div id="filters" class="filters" aria-label="Filter by object type"></div>
+      <div class="gallery-controls">
+        <div id="filters" class="filters" role="group" aria-label="Filter by object type"></div>
+        <div class="gallery-options">
+          <button id="gallery-favorites" type="button" aria-pressed="false"><span aria-hidden="true">★</span> Favorites</button>
+          <label class="gallery-sort"><span class="sr-only">Sort gallery</span>
+            <select id="gallery-sort">
+              <option value="gallery">Gallery order</option>
+              <option value="latest">Latest capture</option>
+              <option value="exposure">Longest integration</option>
+              <option value="name">Object name</option>
+            </select>
+          </label>
+        </div>
+      </div>
       <p class="sr-only" id="result-count" role="status"></p>
       <div id="cards" class="cards"></div>
     </section>
@@ -66,19 +79,9 @@
           <h1 id="target-title" tabindex="-1"></h1>
           <p id="target-catalog" class="eyebrow"></p>
         </div>
-        <div class="target-meta">
-          <button id="compare-nights" type="button" aria-pressed="false" hidden>Compare nights</button>
-          <p id="target-count"></p>
-        </div>
       </header>
       <div class="viewer-layout">
         <div id="viewer-frame">
-          <div id="night-options" class="night-options" aria-label="Compare observing nights" hidden>
-            <label class="field">Left capture <select id="night-left"></select></label>
-            <label class="field">Right capture <select id="night-right"></select></label>
-            <button id="night-blink" type="button" hidden>Blink</button>
-            <p>Aligned on the stars. Both nights use the same zoom and adjustments.</p>
-          </div>
           <div id="stage" class="stage">
             <div class="display-layer"><img id="baseline" alt=""></div>
             <div class="display-layer adjusted-layer" id="adjusted-layer" hidden><canvas id="adjusted" aria-hidden="true"></canvas></div>
@@ -97,22 +100,31 @@
           </div>
           <button id="fullscreen-image" type="button" hidden>Exit full screen</button>
           <button id="toggle-clean-view" type="button" aria-pressed="false" hidden>Clean view</button>
-          <div class="stage-controls">
-            <button id="expand-capture" type="button">Full screen</button>
+          <div class="stage-controls" role="group" aria-label="Image controls">
             <button id="toggle-viewer-tools" type="button" aria-expanded="false" aria-controls="viewer-tools">More</button>
             <div class="viewer-rail" id="viewer-rail">
               <div class="viewer-options" id="viewer-options">
-                <button id="toggle-adjustments" type="button" aria-expanded="false" aria-controls="image-adjustments">Adjust image</button>
+                <button id="expand-capture" type="button" aria-label="Full screen" title="Full screen"><span class="expand-icon" aria-hidden="true"></span><span class="expand-label" aria-hidden="true">Full screen</span></button>
+                <button id="toggle-adjustments" type="button" aria-label="Adjust image" aria-expanded="false" aria-controls="image-adjustments">Adjust<span class="adjust-label"> image</span></button>
                 <div id="capture-navigation" class="capture-navigation" role="group" aria-label="Capture navigation" hidden>
-                  <button id="previous-capture" type="button" aria-label="Previous capture">‹</button>
-                  <span aria-live="polite"><span id="capture-position"></span><span id="capture-date"></span></span>
-                  <button id="next-capture" type="button" aria-label="Next capture">›</button>
+                  <button id="previous-capture" type="button" aria-label="Previous capture" title="Previous capture">‹</button>
+                  <span id="capture-announcement" class="sr-only" aria-live="polite"></span>
+                  <span aria-hidden="true"><span id="capture-position"></span><span id="capture-date"></span></span>
+                  <button id="next-capture" type="button" aria-label="Next capture" title="Next capture">›</button>
+                </div>
+                <button id="compare-nights" type="button" aria-pressed="false" aria-controls="night-options" hidden>Compare nights</button>
+                <div id="night-options" class="night-options" role="group" aria-label="Compare observing nights" hidden>
+                  <label class="field">Left <select id="night-left" aria-label="Left capture"></select></label>
+                  <label class="field">Right <select id="night-right" aria-label="Right capture"></select></label>
+                  <button id="night-blink" type="button">Blink</button>
+                  <button id="night-split" type="button" hidden>Show split</button>
                 </div>
                 <label id="compare-range" class="compare-range" hidden><span id="split-label" class="sr-only">Before and after divider</span>
                   <input id="split" type="range" min="0" max="100" value="50">
                 </label>
                 <button id="open-webb" type="button" aria-haspopup="dialog" hidden>Compare with Webb</button>
                 <div class="viewer-tools" id="viewer-tools">
+                  <button id="favorite-capture" type="button" aria-pressed="false"><span id="favorite-icon" aria-hidden="true">☆</span> Favorite</button>
                   <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
                   <button id="zoom-fit" type="button" aria-label="Fit image">Fit</button>
                   <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
@@ -125,7 +137,6 @@
                   <button id="replay" type="button" hidden>Stack replay</button>
                   <button id="share-view" type="button">Share view</button>
                   <a id="detail-file" class="detail-file" target="_blank" rel="noopener" hidden>Open full-resolution file</a>
-                  <button id="night-split" type="button" hidden>Show split</button>
                 </div>
               </div>
               <button id="scroll-viewer-tools" type="button" aria-label="Scroll to more tools" title="Scroll to more tools" hidden>›</button>
