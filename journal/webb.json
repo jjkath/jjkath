@@ -1,0 +1,222 @@
+{
+  "references": {
+    "m51": {
+      "source": "https://esawebb.org/images/potm2308b/",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam · 1.15–4.44 μm",
+      "credit": "ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team",
+      "alt": "The Whirlpool Galaxy with a bright core and reddish dust tracing the spiral arms.",
+      "field": {
+        "center": [
+          202.46745833,
+          47.20007778
+        ],
+        "arcminutes": [
+          5.86,
+          2.2
+        ],
+        "north_left": 49.2
+      },
+      "url": "https://cdn.esawebb.org/archives/images/publicationjpg/potm2308b.jpg",
+      "name": "Whirlpool Galaxy"
+    },
+    "m104": {
+      "source": "https://science.nasa.gov/asset/webb/sombrero-galaxy-nircam/",
+      "band": "NIRCam · 0.90–4.44 μm",
+      "credit": "NASA, ESA, CSA, STScI",
+      "alt": "The Sombrero Galaxy with a bright bulge and a dark, clumpy ring tilted across it.",
+      "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2025/06/STScI-01JWC17WKB372KQ7BM0KYZS0J5.png?fit=clip&h=1867&w=2000",
+      "name": "Sombrero Galaxy"
+    },
+    "m82": {
+      "source": "https://science.nasa.gov/asset/webb/m82-cigar-galaxy-nircam-image/",
+      "band": "NIRCam · 1.15–4.44 μm",
+      "credit": "NASA, ESA, CSA, Adam Smercina (STScI, Tufts), Thomas Williams (University of Manchester); Image Processing: Alyssa Pagan (STScI)",
+      "alt": "The Cigar Galaxy with a bright edge-on disk and warm-colored plumes above and below it.",
+      "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2026/06/STScI-01KM3RWWTEHPFZG9QEKE4FZM25.png?w=2000",
+      "name": "Cigar Galaxy"
+    },
+    "m42": {
+      "source": "https://esawebb.org/images/weic2315b/",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam · 1.40–4.80 μm",
+      "credit": "ESA/Webb, NASA, CSA, M. Zamani (ESA/Webb), the PDRs4All ERS Team",
+      "alt": "Close-up of the Orion Bar with a bright diagonal ridge and two brilliant stars.",
+      "field": {
+        "center": [
+          83.84279167,
+          -5.40823056
+        ],
+        "arcminutes": [
+          2.08,
+          2.31
+        ],
+        "north_left": 95.0
+      },
+      "url": "https://cdn.esawebb.org/archives/images/screen/weic2315b.jpg",
+      "name": "Orion Bar"
+    },
+    "ngc604": {
+      "name": "NGC 604 in the Triangulum Galaxy",
+      "source": "https://esawebb.org/images/weic2407d/",
+      "url": "https://cdn.esawebb.org/archives/images/screen/weic2407d.jpg",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam · 0.90–4.70 μm",
+      "alt": "A star-forming region with red, filamentary clouds around a blue cavity.",
+      "credit": "NASA, ESA, CSA, STScI",
+      "field": {
+        "center": [
+          23.64091667,
+          30.78364722
+        ],
+        "arcminutes": [
+          1.83,
+          1.51
+        ],
+        "north_left": -73.2
+      }
+    },
+    "lion": {
+      "name": "Lion Nebula (NGC 2392)",
+      "source": "https://esawebb.org/images/weic2616a/",
+      "url": "https://cdn.esawebb.org/archives/images/screen/weic2616a.jpg",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam + MIRI · 1.15–10 μm",
+      "alt": "A round planetary nebula with a white dwarf inside nested pink and purple shells.",
+      "credit": "NASA, ESA, CSA, STScI. Image Processing: A. Pagan (STScI).",
+      "field": {
+        "center": [
+          112.29504167,
+          20.91214444
+        ],
+        "arcminutes": [
+          1.77,
+          1.77
+        ],
+        "north_left": 170.0
+      }
+    },
+    "ngc628": {
+      "name": "Phantom Galaxy (M74)",
+      "source": "https://esawebb.org/images/weic2403c/",
+      "url": "https://cdn.esawebb.org/archives/images/screen/weic2403c.jpg",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam + MIRI · 3–21 μm",
+      "alt": "A face-on spiral with a blue center and orange arms threaded with dust.",
+      "credit": "NASA, ESA, CSA, STScI, J. Lee (STScI), T. Williams (Oxford), PHANGS Team"
+    },
+    "ngc1365": {
+      "name": "Great Barred Spiral (NGC 1365)",
+      "source": "https://esawebb.org/images/weic2403f/",
+      "url": "https://cdn.esawebb.org/archives/images/screen/weic2403f.jpg",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam + MIRI · 3–21 μm",
+      "alt": "A bright galaxy core with a bar and curved dust filaments.",
+      "credit": "NASA, ESA, CSA, STScI, J. Lee (STScI), T. Williams (Oxford), PHANGS Team"
+    },
+    "carina": {
+      "name": "Cosmic Cliffs in Carina",
+      "source": "https://esawebb.org/images/weic2205a/",
+      "url": "https://cdn.esawebb.org/archives/images/screen/weic2205a.jpg",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam · 0.90–4.70 μm",
+      "alt": "A jagged wall of gas and dust below a field of stars.",
+      "credit": "NASA, ESA, CSA, and STScI"
+    },
+    "tarantula": {
+      "name": "Tarantula Nebula",
+      "source": "https://esawebb.org/images/weic2212a/",
+      "url": "https://cdn.esawebb.org/archives/images/screen/weic2212a.jpg",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "band": "NIRCam · 0.90–4.70 μm",
+      "alt": "A bright group of young stars surrounded by dusty clouds and cavities.",
+      "credit": "NASA, ESA, CSA, and STScI"
+    }
+  },
+  "targets": {
+    "m51": {
+      "reference": "m51",
+      "note": "Trace the spiral arms from the bright core. Webb picks out thin dust filaments and knots of star formation along the same arms."
+    },
+    "m104": {
+      "reference": "m104",
+      "note": "Look for the dark band across the bright bulge. Webb resolves the outer dust ring into mottled clumps."
+    },
+    "m82": {
+      "reference": "m82",
+      "note": "Start with the bright edge-on disk. In Webb’s image, plumes of gas and dust branch away from both sides."
+    },
+    "m42": {
+      "reference": "m42",
+      "note": "Webb zooms in on the Orion Bar near the Trapezium. Look for the bright ridge where ultraviolet light from young stars meets dense gas."
+    },
+    "m33": {
+      "reference": "ngc604",
+      "note": "Webb zooms into NGC 604, a stellar nursery in the Triangulum Galaxy. Look for the cavities carved by its young stars."
+    },
+    "ngc2392": {
+      "reference": "lion",
+      "note": "My wide capture shows the nebula as a tiny disk. Webb resolves the white dwarf and the rings and dust clumps around it."
+    },
+    "m81": {
+      "reference": "m51",
+      "similar": true,
+      "note": "Compare how the spiral arms wind outward from a bright core. Webb’s example is the Whirlpool Galaxy."
+    },
+    "m63": {
+      "reference": "ngc628",
+      "similar": true,
+      "note": "Compare the Sunflower’s patchy spiral with the Phantom Galaxy’s more continuous arms."
+    },
+    "m101": {
+      "reference": "ngc628",
+      "similar": true,
+      "note": "These face-on spirals make it easy to follow their arms from the core out toward the star-forming regions."
+    },
+    "ngc2403": {
+      "reference": "ngc628",
+      "similar": true,
+      "note": "Look for clumps of star formation tracing the spiral pattern in both galaxies."
+    },
+    "ngc2903": {
+      "reference": "ngc1365",
+      "similar": true,
+      "note": "Follow the elongated central bar and look where the spiral arms begin at its ends."
+    },
+    "ngc891": {
+      "reference": "m104",
+      "similar": true,
+      "note": "Both galaxies show a dust lane across a nearly edge-on disk. The Sombrero has a much larger central bulge."
+    },
+    "m97": {
+      "reference": "lion",
+      "similar": true,
+      "note": "Both are planetary nebulae. Compare the Owl’s round shell with the rings Webb resolves around the Lion’s central star."
+    },
+    "heart": {
+      "reference": "tarantula",
+      "similar": true,
+      "note": "Compare the dark cavities and bright gas around groups of young stars."
+    },
+    "soul": {
+      "reference": "tarantula",
+      "similar": true,
+      "note": "Look at where glowing gas rims the cavities excavated by young stars."
+    },
+    "rosette": {
+      "reference": "tarantula",
+      "similar": true,
+      "note": "Compare the central cavity and the dusty gas sculpted by the stars around it."
+    },
+    "california": {
+      "reference": "carina",
+      "similar": true,
+      "note": "Follow the boundary where bright ionized gas meets darker clouds. Webb’s example resolves that edge in Carina."
+    },
+    "flaming-star": {
+      "reference": "carina",
+      "similar": true,
+      "note": "Compare the bright folds where starlight meets dense clouds. Webb’s infrared view shows fine structure along the ridge."
+    }
+  }
+}
