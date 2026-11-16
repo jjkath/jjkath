@@ -19,6 +19,8 @@
   const narrowWebb = matchMedia("(max-width: 680px)");
   const webbDialog = byId("webb-dialog");
   const webbReference = byId("webb-reference");
+  const webbImagePage = byId("webb-image-page");
+  const webbImage = byId("webb-image-full");
   const adjustmentPanel = byId("image-adjustments");
   const canvas = byId("adjusted");
   const nightImage = byId("night-image");
@@ -58,6 +60,12 @@
     {id:"nebula-colors", name:"Nebula colors", stretch:"asinh", midtone:21, black:.45, saturation:103,
       structure:59, smoothing:28, shoulder:10, skyLift:5, effect:"cloud-color", amountLabel:"Cloud color boost",
       hint:"Strengthen colors already present in the clouds while protecting the dark background and compact stars."},
+    {id:"webb-cool", name:"Webb Cool", stretch:"asinh", midtone:15, black:.45, white:96, saturation:90,
+      structure:40, smoothing:27, shoulder:22, skyLift:5, paletteBlend:64,
+      hint:"Map faint structure to blue and brighter detail to gold. A Webb-inspired palette for visible-light data."},
+    {id:"webb-dust", name:"Webb Dust", stretch:"asinh", midtone:21, black:.35, white:95, saturation:98,
+      structure:48, scale:"broad", smoothing:31, stars:9, shoulder:24, skyLift:5, paletteBlend:72,
+      hint:"Use rose and copper to pick out wisps and dust lanes. A Webb-inspired palette for visible-light data."},
     {id:"warm", name:"Warm nebula", midtone:42, black:.35, saturation:106, structure:34, scale:"broad",
       smoothing:30, stars:7, warm:14, shoulder:13, skyLift:5,
       hint:"Warm the bright clouds while keeping the sky and compact stars closer to their original colors."},
@@ -72,12 +80,15 @@
   ];
   const numericControls = ["midtone", "black", "white", "saturation", "structure", "stars", "smoothing", "warm"];
   const presetControls = [...numericControls,"scale","stretch"];
+  const lookPrefix = "jjkath.saved-look.v1.";
 
   const paletteStops = {
     gold:[[0,[3,5,13]],[.22,[20,31,75]],[.43,[54,93,157]],[.65,[178,132,68]],[.86,[255,211,125]],[1,[255,246,220]]],
     teal:[[0,[3,8,13]],[.22,[15,50,67]],[.43,[36,113,126]],[.66,[163,64,88]],[.85,[238,122,123]],[1,[255,238,219]]],
     violet:[[0,[7,5,17]],[.22,[55,25,87]],[.43,[120,66,156]],[.66,[186,106,113]],[.85,[245,171,115]],[1,[255,239,209]]],
-    inferno:[[0,[0,0,5]],[.22,[51,14,86]],[.43,[135,35,105]],[.64,[213,67,67]],[.86,[249,158,20]],[1,[252,255,164]]]
+    inferno:[[0,[0,0,5]],[.22,[51,14,86]],[.43,[135,35,105]],[.64,[213,67,67]],[.86,[249,158,20]],[1,[252,255,164]]],
+    "webb-cool":[[0,[8,16,42]],[.16,[45,95,201]],[.34,[61,147,191]],[.53,[172,147,114]],[.75,[241,175,93]],[1,[255,242,207]]],
+    "webb-dust":[[0,[25,13,41]],[.16,[92,48,108]],[.35,[176,69,105]],[.55,[227,118,63]],[.76,[246,181,105]],[1,[255,235,205]]]
   };
 
   let kind = "All";
@@ -96,6 +107,7 @@
   let usePrecision = false;
   let precisionModel = null;
   let precisionRequest = 0;
+  let exportRequest = 0;
   let zoom = 1;
   let pixelView = false;
   let panX = 0;
@@ -393,6 +405,11 @@
 
   function toggleAdjustments(open, focus = false) {
     const button = byId("toggle-adjustments");
+    if (open && pixelView) setZoom(1);
+    if (open && expanded) {
+      setCleanView(false);
+      if (!viewerFrame.classList.contains("tools-open")) showViewerTools(true);
+    }
     adjustmentPanel.hidden = !open;
     button.setAttribute("aria-expanded", String(open));
     if (focus) (open ? byId("adjust-heading") : button).focus({preventScroll:open || !compactFullScreen.matches});
@@ -404,8 +421,12 @@
     button.setAttribute("aria-expanded", String(open));
     button.setAttribute("aria-controls", expanded ? "viewer-rail" : "viewer-tools");
     button.textContent = expanded ? (open ? "Hide controls" : "Controls") : (open ? "Less" : "More");
+    if (expanded && !open) toggleAdjustments(false);
     if (expanded && open) viewerOptions.scrollLeft = 0;
-    requestAnimationFrame(showZoom);
+    requestAnimationFrame(()=>{
+      syncToolScroll();
+      showZoom();
+    });
   }
 
   function toolsAtEnd() {
@@ -424,6 +445,7 @@
   }
 
   function setCleanView(enabled) {
+    if (enabled) toggleAdjustments(false);
     viewerFrame.classList.toggle("clean-view",enabled);
     const button = byId("toggle-clean-view");
     button.setAttribute("aria-pressed",String(enabled));
@@ -475,18 +497,35 @@
     if (!reference) return;
     const footprint = reference.footprint;
     const capture = byId("webb-capture");
+    const edit = byId("webb-edit-image");
+    const {width,height} = currentCapture.detail || {width:baseline.naturalWidth,height:baseline.naturalHeight};
+    if (width && height) capture.parentElement.style.setProperty("--photo-ratio",width/height);
+    webbReference.removeAttribute("src");
+    webbReference.hidden = true;
+    byId("webb-load-status").textContent = "";
     capture.alt = currentTarget.name + " photographed with Celestron Origin";
     capture.src = currentCapture.full;
     webbReference.alt = reference.alt;
     byId("webb-title").textContent = "Compare with Webb · " + currentTarget.name;
-    byId("webb-capture-label").textContent = "My capture · " + dateLabel(currentCapture);
+    const canShowEdit = !byId("adjusted-layer").hidden;
+    byId("webb-show-edit").hidden = !canShowEdit;
+    if (canShowEdit) {
+      edit.width = canvas.width;
+      edit.height = canvas.height;
+      edit.getContext("2d").drawImage(canvas,0,0);
+      edit.setAttribute("aria-label",currentTarget.name + " with my image adjustments");
+    }
+    showWebbEdit(canShowEdit && !previewOriginal && !pixelView);
     const referenceType = reference.archive ? "Webb archive" : "Webb infrared";
     byId("webb-reference-label").textContent = `${referenceType} · ${reference.name} · ${reference.band}`;
     byId("webb-feature").textContent = reference.note;
     byId("webb-credit").textContent = "Webb image credit: " + reference.credit;
     const source = byId("webb-source");
     source.href = reference.source;
-    source.textContent = reference.archive ? "View the Webb observing program ↗" : "View the official Webb image and downloads ↗";
+    source.textContent = reference.archive ? "Webb observing program ↗" : "Official release and downloads ↗";
+    byId("webb-open-image").href = reference.archive ? "#webb/" + currentTarget.id + "/" + currentCapture.id : reference.url;
+    const look = webbLook(reference);
+    byId("webb-try-look").textContent = "Try " + look.name + " on my capture";
     byId("webb-license").hidden = !reference.license;
     if (reference.license) byId("webb-license").href = reference.license;
     byId("webb-footprint").toggleAttribute("hidden",!footprint);
@@ -497,6 +536,19 @@
     }
     webbDialog.showModal();
     selectWebbView("capture");
+  }
+
+  function webbLook(reference) {
+    const id = /miri/i.test(reference.band) || currentTarget.kind === "Nebulae" ? "webb-dust" : "webb-cool";
+    return presets.find(item=>item.id === id);
+  }
+
+  function showWebbEdit(enabled) {
+    const button = byId("webb-show-edit");
+    button.textContent = enabled ? "Show original" : "Show my edit";
+    byId("webb-capture").hidden = enabled;
+    byId("webb-edit-image").hidden = !enabled;
+    byId("webb-capture-label").textContent = (enabled ? "My edited capture" : "My capture") + " · " + dateLabel(currentCapture);
   }
 
   function loadDetail() {
@@ -556,19 +608,23 @@
     document.body.classList.toggle("viewer-expanded",enabled);
     const button = byId("fullscreen-image");
     byId("expand-capture").hidden = enabled;
-    byId("toggle-adjustments").hidden = enabled;
     button.hidden = !enabled;
     byId("toggle-clean-view").hidden = !enabled;
     syncCaptureNavigation();
     if (wasExpanded !== enabled) {
       cancelTap();
       setCleanView(false);
+      toggleAdjustments(false);
       const nightOptions = byId("night-options");
-      if (enabled) viewerOptions.prepend(nightOptions);
-      else stage.before(nightOptions);
+      if (enabled) {
+        byId("toggle-adjustments").after(nightOptions);
+        viewerFrame.append(adjustmentPanel);
+      } else {
+        stage.before(nightOptions);
+        viewerFrame.after(adjustmentPanel);
+      }
       showViewerTools(enabled && !compactFullScreen.matches && !touchScreen.matches);
     }
-    if (enabled) toggleAdjustments(false);
     if (enabled) loadDetail();
     else {
       if (pixelView) setZoom(1);
@@ -620,7 +676,7 @@
       if (request !== precisionRequest) return;
       precisionModel = model;
       imageCache.delete(baseline);
-      status.textContent = "16-bit source active. Use Histogram & stretch to adjust its display.";
+      status.textContent = "16-bit source active. Use Advanced adjustments to fine-tune its display.";
       queueRender();
     }).catch(error=>{
       if (request !== precisionRequest) return;
@@ -638,6 +694,7 @@
     settings.monochrome = preset.id === "mono";
     settings.precision = usePrecision && Boolean(precisionModel);
     settings.effect = preset.effect;
+    settings.paletteBlend = preset.paletteBlend === undefined ? undefined : Number(byId("palette-blend").value);
     settings.skyLift = currentTarget?.id === "m31" && preset.andromeda ? null : preset.skyLift;
     settings.shoulder = (settings.precision ? preset.precision?.shoulder : null) ?? preset.shoulder ?? 0;
     return settings;
@@ -650,23 +707,29 @@
 
   function choosePreset(next) {
     preset = next;
+    if (previewOriginal) setOriginalPreview(false);
     const source = usePrecision ? currentCapture.precision : null;
     const tuned = currentTarget?.id === "m31" && next.andromeda ? (source ? next.precision : next.andromeda) : null;
     byId("white").min = "1";
     for (const id of presetControls) byId(id).value = tuned?.[id] ?? source?.[id] ?? next[id] ?? adjustmentDefaults[id];
-    byId("structure-value").previousSibling.textContent = (next.amountLabel || "Structure strength") + " ";
-    const usesPalette = next.id === "false";
-    byId("palette-control").hidden = !usesPalette;
-    byId("saturation").disabled = usesPalette || next.id === "mono";
-    byId("warm").disabled = usesPalette || next.id === "mono";
+    byId("structure-value").previousSibling.textContent = (next.amountLabel || "Detail") + " ";
+    const falseColor = next.id === "false";
+    const blendsPalette = next.paletteBlend !== undefined;
+    const showColor = !falseColor && !blendsPalette && next.id !== "mono";
+    byId("palette-control").hidden = !falseColor;
+    byId("saturation-label").hidden = byId("saturation").hidden = !showColor;
+    byId("palette-blend-label").hidden = byId("palette-blend").hidden = !blendsPalette;
+    byId("palette-blend").value = next.paletteBlend ?? 0;
+    byId("warm").disabled = falseColor || next.id === "mono";
     const isNebula = currentTarget?.kind === "Nebulae";
     const isGalaxy = currentTarget?.kind === "Galaxies";
-    const hint = next.id === "baseline" && isNebula ? "Try Nebula structure to bring out faint clouds."
-      : next.id === "baseline" && isGalaxy ? "Try Galaxy detail to bring out arms and dust lanes." : next.hint;
-    byId("processing-hint").textContent = hint;
+    byId("processing-hint").textContent = next.hint;
+    byId("detail-preset").dataset.preset = isNebula ? "nebula" : isGalaxy ? "galaxy" : "faint";
     for (const button of byId("presets").children) {
       button.setAttribute("aria-pressed",String(button.dataset.preset === next.id));
+      button.textContent = presets.find(item=>item.id === button.dataset.preset).name;
     }
+    byId("all-presets").value = next.id;
     queueRender();
   }
 
@@ -772,8 +835,10 @@
     const settings = activeSettings();
     byId("midtone-value").value = (settings.midtone > 0 ? "+" : "") + settings.midtone;
     for (const id of numericControls.slice(1)) byId(id + "-value").value = settings[id] + "%";
+    byId("palette-blend-value").value = (settings.paletteBlend ?? 0) + "%";
     const adjusted = isAdjusted(settings) && (!usePrecision || settings.precision);
-    const palette = preset.id === "false" ? makePalette(byId("palette").value) : null;
+    const paletteName = preset.id === "false" ? byId("palette").value : settings.paletteBlend ? preset.id : null;
+    const palette = paletteName ? makePalette(paletteName) : null;
     const visible = adjusted && renderAdjusted(baseline,canvas,settings,palette);
     byId("adjusted-layer").hidden = !visible;
     if (!isAdjusted(settings) && !usePrecision) activeCompare = false;
@@ -787,6 +852,7 @@
     previewButton.disabled = !canPreview;
     if (!canPreview && previewOriginal) setOriginalPreview(false);
     byId("compare").disabled = !visible || previewOriginal;
+    byId("export-edit").disabled = !visible || compareNights;
     drawHistogram(settings);
     updateCompare();
   }
@@ -846,6 +912,8 @@
     const previousTarget = currentTarget;
     currentTarget = target;
     currentCapture = capture;
+    clearExport();
+    refreshSavedLook();
     if (webbDialog.open) webbDialog.close();
     cancelTap();
     setOriginalPreview(false);
@@ -880,21 +948,43 @@
 
   function handleRoute() {
     const [hash, shared] = (location.hash.slice(1) || "home").split("?",2);
-    const [, targetId, captureId] = hash.split("/");
-    const target = hash.startsWith("target/") && targets.find((item) => item.id === targetId);
-    if (target) {
-      const capture = photo(target,captureId) || coverFor(target);
+    const [sectionName, targetId, captureId] = hash.split("/");
+    const target = targets.find(item=>item.id === targetId);
+    const capture = target && (photo(target,captureId) || coverFor(target));
+    const archive = sectionName === "webb" && capture?.webb?.archive;
+    webbImagePage.hidden = !archive;
+    if (!archive) webbImage.removeAttribute("src");
+    if (sectionName === "target" && capture) {
       if (capture !== currentCapture) openCapture(target,capture);
       if (shared) restoreView(new URLSearchParams(shared));
       return;
     }
     if (webbDialog.open) webbDialog.close();
     if (expanded) toggleExpanded();
+    clearExport();
     currentTarget = null;
     currentCapture = null;
     byId("target-view").hidden = true;
-    byId("home-view").hidden = false;
-    byId("home-masthead").hidden = false;
+    byId("home-view").hidden = Boolean(archive);
+    byId("home-masthead").hidden = Boolean(archive);
+    if (archive) {
+      const reference = capture.webb;
+      byId("webb-image-title").textContent = reference.name;
+      byId("webb-image-band").textContent = reference.band;
+      byId("webb-image-credit").textContent = reference.credit;
+      byId("webb-image-back").href = routeTo(target,capture);
+      byId("webb-image-download").href = reference.url;
+      byId("webb-image-program").href = reference.source;
+      if (webbImage.getAttribute("src") !== reference.url) {
+        webbImage.hidden = true;
+        webbImage.alt = reference.alt;
+        byId("webb-image-status").textContent = "Loading the archive image…";
+        webbImage.src = reference.url;
+      }
+      document.title = reference.name + " | Webb archive";
+      window.scrollTo(0,0);
+      return;
+    }
     document.title = "jjkath astrophotography";
     const section = hash === "catalog" || hash === "about" ? byId(hash) : null;
     if (section) {
@@ -903,16 +993,91 @@
     } else window.scrollTo(0,0);
   }
 
+  function lookOptions() {
+    const options = new URLSearchParams({preset:preset.id, palette:byId("palette").value});
+    for (const id of presetControls) options.set(id,byId(id).value);
+    if (preset.paletteBlend !== undefined) options.set("palette-blend",byId("palette-blend").value);
+    if (!byId("highlights").checked) options.set("stars-color","off");
+    if (usePrecision) options.set("precision","true");
+    return options;
+  }
+
+  function applyLook(options) {
+    const chosen = presets.find(item=>item.id === options.get("preset")) || presets[0];
+    const wantsPrecision = options.get("precision") === "true";
+    const precision = Boolean(currentCapture.precision) && !compareNights && wantsPrecision;
+    if (precision !== usePrecision) setPrecision(precision);
+    choosePreset(chosen);
+    const palette = byId("palette");
+    if ([...palette.options].some(option=>option.value === options.get("palette"))) palette.value = options.get("palette");
+    byId("highlights").checked = options.get("stars-color") !== "off";
+    const controls = chosen.paletteBlend === undefined ? presetControls : [...presetControls,"palette-blend"];
+    for (const id of controls) {
+      if (wantsPrecision && !precision && ["black","white","midtone","stretch"].includes(id)) continue;
+      const value = options.get(id);
+      if (value === null) continue;
+      const control = byId(id);
+      if (control.tagName === "SELECT" ? [...control.options].some(o=>o.value === value) : Number.isFinite(Number(value))) {
+        control.value = value;
+      }
+    }
+    return !wantsPrecision || precision;
+  }
+
+  function refreshSavedLook() {
+    const status = byId("look-status");
+    status.textContent = "Save one look per target on this device.";
+    byId("save-look").disabled = false;
+    byId("load-look").disabled = true;
+    try {
+      byId("load-look").disabled = !localStorage.getItem(lookPrefix + currentTarget.id);
+    } catch {
+      byId("save-look").disabled = true;
+      status.textContent = "This browser session has local storage disabled.";
+    }
+  }
+
+  function clearExport() {
+    const link = byId("download-edit");
+    if (link.hasAttribute("href")) URL.revokeObjectURL(link.href);
+    link.removeAttribute("href");
+    link.hidden = true;
+    return ++exportRequest;
+  }
+
+  async function exportEditedImage() {
+    if (compareNights || byId("adjusted-layer").hidden) return;
+    const request = clearExport();
+    const {width,height} = canvas;
+    const filename = currentTarget.id + "-" + currentCapture.id + "-" + preset.id + ".png";
+    const status = byId("look-status");
+    status.textContent = "Preparing your PNG…";
+    let png;
+    try {
+      png = await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+    } catch {
+      png = null;
+    }
+    if (request !== exportRequest) return;
+    if (!png) {
+      status.textContent = "The PNG could not be created in this browser.";
+      return;
+    }
+    const link = byId("download-edit");
+    link.href = URL.createObjectURL(png);
+    link.download = filename;
+    link.hidden = false;
+    status.textContent = "PNG ready · " + width + " × " + height + " px";
+    link.click();
+  }
+
   function viewLink() {
     const fallback = "https://jjkath.github.io/jjkath/";
     const url = new URL(location.protocol === "file:" || location.hostname === "127.0.0.1" ? fallback : location.href);
-    const options = new URLSearchParams({
-      preset:preset.id, palette:byId("palette").value, zoom:zoom.toFixed(3),
-      x:(panX / (stage.clientWidth || 1)).toFixed(4), y:(panY / (stage.clientHeight || 1)).toFixed(4)
-    });
-    for (const id of presetControls) options.set(id,byId(id).value);
-    if (!byId("highlights").checked) options.set("stars-color","off");
-    if (usePrecision) options.set("precision","true");
+    const options = lookOptions();
+    options.set("zoom",zoom.toFixed(3));
+    options.set("x",(panX / (stage.clientWidth || 1)).toFixed(4));
+    options.set("y",(panY / (stage.clientHeight || 1)).toFixed(4));
     if (skyAtlas.hasLabels()) options.set("labels","true");
     if (compareNights) {
       options.set("left",byId("night-left").value);
@@ -925,7 +1090,6 @@
   }
 
   function restoreView(options) {
-    const chosen = presets.find(item=>item.id === options.get("preset")) || presets[0];
     const left = options.get("left");
     const right = options.get("right");
     const available = currentTarget.comparison?.captures;
@@ -938,19 +1102,7 @@
       if (["left","right"].includes(options.get("blink"))) blinkSide = options.get("blink");
       updateNightStatus();
     }
-    const precision = Boolean(currentCapture.precision) && !nights && options.get("precision") === "true";
-    if (precision !== usePrecision) setPrecision(precision);
-    choosePreset(chosen);
-    if (Object.hasOwn(paletteStops,options.get("palette"))) byId("palette").value = options.get("palette");
-    byId("highlights").checked = options.get("stars-color") !== "off";
-    for (const id of presetControls) {
-      const value = options.get(id);
-      if (value === null) continue;
-      const control = byId(id);
-      if (control.tagName === "SELECT" ? [...control.options].some(o=>o.value === value) : Number.isFinite(Number(value))) {
-        control.value = value;
-      }
-    }
+    applyLook(options);
     byId("split").value = options.get("split") || "50";
     activeCompare = !nights && options.get("compare") === "true";
     skyAtlas.setLabels(options.get("labels") === "true" && Boolean(currentCapture.sky));
@@ -973,15 +1125,18 @@
   byId("hero-image").src = coverFor(targets.find((target)=>target.id==="flaming-star")).full;
   byId("search").addEventListener("input",renderCards);
 
-  for (const item of presets) {
-    const button = element("button","",item.name);
+  byId("all-presets").replaceChildren(...presets.map(item=>new Option(item.name,item.id)));
+  byId("all-presets").addEventListener("change",event=>choosePreset(presets.find(item=>item.id === event.target.value)));
+  for (const id of ["baseline","faint","webb-cool","webb-dust"]) {
+    const button = element("button");
     button.type = "button";
-    button.dataset.preset = item.id;
-    button.addEventListener("click",()=>choosePreset(item));
+    button.dataset.preset = id;
+    if (id === "faint") button.id = "detail-preset";
+    button.addEventListener("click",()=>choosePreset(presets.find(item=>item.id === button.dataset.preset)));
     byId("presets").append(button);
   }
   choosePreset(presets[0]);
-  for (const id of [...presetControls,"highlights","palette"]) {
+  for (const id of [...presetControls,"highlights","palette","palette-blend"]) {
     byId(id).addEventListener("input",queueRender);
     byId(id).addEventListener("change",queueRender);
   }
@@ -1016,6 +1171,13 @@
   byId("open-webb").addEventListener("click",openWebbComparison);
   byId("webb-show-capture").addEventListener("click",()=>selectWebbView("capture"));
   byId("webb-show-reference").addEventListener("click",()=>selectWebbView("reference"));
+  byId("webb-show-edit").addEventListener("click",()=>showWebbEdit(byId("webb-edit-image").hidden));
+  byId("webb-try-look").addEventListener("click",()=>{
+    const look = webbLook(currentCapture.webb);
+    webbDialog.close();
+    choosePreset(look);
+    toggleAdjustments(true,true);
+  });
   narrowWebb.addEventListener("change",loadWebbReference);
   for (const image of [byId("webb-capture"),webbReference]) {
     image.addEventListener("load",()=>{
@@ -1032,11 +1194,20 @@
       byId("webb-load-status").textContent = "The image could not load here. Open the Webb source below.";
     }
   });
+  webbImage.addEventListener("load",()=>{
+    webbImage.hidden = false;
+    byId("webb-image-status").textContent = "";
+  });
+  webbImage.addEventListener("error",()=>{
+    byId("webb-image-status").textContent = "The archive image could not load. Try the download link below.";
+  });
   webbDialog.addEventListener("close",()=>{
     if (webbDialog.open) return;
     webbReference.removeAttribute("src");
     webbReference.hidden = true;
     byId("webb-load-status").textContent = "";
+    const edit = byId("webb-edit-image");
+    edit.width = edit.height = 0;
   });
   document.addEventListener("fullscreenchange",()=>{
     if (!viewerFrame.classList.contains("viewport-fill")) displayExpanded(document.fullscreenElement === viewerFrame);
@@ -1049,6 +1220,31 @@
   nightImage.addEventListener("load",queueRender);
   byId("tone-controls").addEventListener("toggle",queueRender);
   byId("precision").addEventListener("click",()=>setPrecision(!usePrecision));
+  byId("save-look").addEventListener("click",()=>{
+    const status = byId("look-status");
+    try {
+      localStorage.setItem(lookPrefix + currentTarget.id,lookOptions().toString());
+      byId("load-look").disabled = false;
+      status.textContent = "Look saved for " + currentTarget.name + ".";
+    } catch {
+      status.textContent = "This browser could not save the look.";
+    }
+  });
+  byId("load-look").addEventListener("click",()=>{
+    const status = byId("look-status");
+    try {
+      const saved = localStorage.getItem(lookPrefix + currentTarget.id);
+      if (!saved) {
+        refreshSavedLook();
+        return;
+      }
+      const restored = applyLook(new URLSearchParams(saved));
+      status.textContent = restored ? "Saved look loaded." : "Saved look loaded with brightness levels for this capture.";
+    } catch {
+      status.textContent = "This browser could not load the saved look.";
+    }
+  });
+  byId("export-edit").addEventListener("click",exportEditedImage);
   byId("objects").addEventListener("click",()=>{
     skyAtlas.setLabels(!skyAtlas.hasLabels());
     syncCaptureTools();
