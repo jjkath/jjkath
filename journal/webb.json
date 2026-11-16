@@ -1,222 +1,670 @@
 {
-  "references": {
-    "m51": {
-      "source": "https://esawebb.org/images/potm2308b/",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam · 1.15–4.44 μm",
-      "credit": "ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team",
-      "alt": "The Whirlpool Galaxy with a bright core and reddish dust tracing the spiral arms.",
-      "field": {
-        "center": [
-          202.46745833,
-          47.20007778
+  "coma": {
+    "alt": "Infrared image of the bright, round elliptical galaxy NGC 4874 and neighboring galaxies in Coma.",
+    "archive": true,
+    "band": "NIRCam F356W · 3.56 μm",
+    "capture_footprints": {
+      "1707": [
+        [
+          0.52581,
+          0.49057
         ],
-        "arcminutes": [
-          5.86,
-          2.2
+        [
+          0.52311,
+          0.54057
         ],
-        "north_left": 49.2
-      },
-      "url": "https://cdn.esawebb.org/archives/images/publicationjpg/potm2308b.jpg",
-      "name": "Whirlpool Galaxy"
-    },
-    "m104": {
-      "source": "https://science.nasa.gov/asset/webb/sombrero-galaxy-nircam/",
-      "band": "NIRCam · 0.90–4.44 μm",
-      "credit": "NASA, ESA, CSA, STScI",
-      "alt": "The Sombrero Galaxy with a bright bulge and a dark, clumpy ring tilted across it.",
-      "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2025/06/STScI-01JWC17WKB372KQ7BM0KYZS0J5.png?fit=clip&h=1867&w=2000",
-      "name": "Sombrero Galaxy"
-    },
-    "m82": {
-      "source": "https://science.nasa.gov/asset/webb/m82-cigar-galaxy-nircam-image/",
-      "band": "NIRCam · 1.15–4.44 μm",
-      "credit": "NASA, ESA, CSA, Adam Smercina (STScI, Tufts), Thomas Williams (University of Manchester); Image Processing: Alyssa Pagan (STScI)",
-      "alt": "The Cigar Galaxy with a bright edge-on disk and warm-colored plumes above and below it.",
-      "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2026/06/STScI-01KM3RWWTEHPFZG9QEKE4FZM25.png?w=2000",
-      "name": "Cigar Galaxy"
-    },
-    "m42": {
-      "source": "https://esawebb.org/images/weic2315b/",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam · 1.40–4.80 μm",
-      "credit": "ESA/Webb, NASA, CSA, M. Zamani (ESA/Webb), the PDRs4All ERS Team",
-      "alt": "Close-up of the Orion Bar with a bright diagonal ridge and two brilliant stars.",
-      "field": {
-        "center": [
-          83.84279167,
-          -5.40823056
+        [
+          0.52182,
+          0.54045
         ],
-        "arcminutes": [
-          2.08,
-          2.31
+        [
+          0.49433,
+          0.53539
         ],
-        "north_left": 95.0
-      },
-      "url": "https://cdn.esawebb.org/archives/images/screen/weic2315b.jpg",
-      "name": "Orion Bar"
-    },
-    "ngc604": {
-      "name": "NGC 604 in the Triangulum Galaxy",
-      "source": "https://esawebb.org/images/weic2407d/",
-      "url": "https://cdn.esawebb.org/archives/images/screen/weic2407d.jpg",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam · 0.90–4.70 μm",
-      "alt": "A star-forming region with red, filamentary clouds around a blue cavity.",
-      "credit": "NASA, ESA, CSA, STScI",
-      "field": {
-        "center": [
-          23.64091667,
-          30.78364722
+        [
+          0.49441,
+          0.53308
         ],
-        "arcminutes": [
-          1.83,
-          1.51
+        [
+          0.49728,
+          0.46586
         ],
-        "north_left": -73.2
-      }
-    },
-    "lion": {
-      "name": "Lion Nebula (NGC 2392)",
-      "source": "https://esawebb.org/images/weic2616a/",
-      "url": "https://cdn.esawebb.org/archives/images/screen/weic2616a.jpg",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam + MIRI · 1.15–10 μm",
-      "alt": "A round planetary nebula with a white dwarf inside nested pink and purple shells.",
-      "credit": "NASA, ESA, CSA, STScI. Image Processing: A. Pagan (STScI).",
-      "field": {
-        "center": [
-          112.29504167,
-          20.91214444
+        [
+          0.49798,
+          0.45225
         ],
-        "arcminutes": [
-          1.77,
-          1.77
+        [
+          0.49979,
+          0.41693
         ],
-        "north_left": 170.0
-      }
+        [
+          0.50108,
+          0.41705
+        ],
+        [
+          0.52773,
+          0.42071
+        ],
+        [
+          0.52867,
+          0.42086
+        ],
+        [
+          0.5286,
+          0.42315
+        ]
+      ]
     },
-    "ngc628": {
-      "name": "Phantom Galaxy (M74)",
-      "source": "https://esawebb.org/images/weic2403c/",
-      "url": "https://cdn.esawebb.org/archives/images/screen/weic2403c.jpg",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam + MIRI · 3–21 μm",
-      "alt": "A face-on spiral with a blue center and orange arms threaded with dust.",
-      "credit": "NASA, ESA, CSA, STScI, J. Lee (STScI), T. Williams (Oxford), PHANGS Team"
+    "credit": "NASA, ESA, CSA, STScI · JWST program 5989 · MAST",
+    "field": {
+      "corners": [
+        [
+          194.898786,
+          27.985685
+        ],
+        [
+          194.862594,
+          27.968574
+        ],
+        [
+          194.863421,
+          27.967074
+        ],
+        [
+          194.882826,
+          27.935564
+        ],
+        [
+          194.884523,
+          27.936294
+        ],
+        [
+          194.9336,
+          27.958387
+        ],
+        [
+          194.943468,
+          27.962992
+        ],
+        [
+          194.969085,
+          27.974962
+        ],
+        [
+          194.968262,
+          27.976465
+        ],
+        [
+          194.950391,
+          28.007368
+        ],
+        [
+          194.949743,
+          28.008451
+        ],
+        [
+          194.948058,
+          28.007726
+        ]
+      ]
     },
-    "ngc1365": {
-      "name": "Great Barred Spiral (NGC 1365)",
-      "source": "https://esawebb.org/images/weic2403f/",
-      "url": "https://cdn.esawebb.org/archives/images/screen/weic2403f.jpg",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam + MIRI · 3–21 μm",
-      "alt": "A bright galaxy core with a bar and curved dust filaments.",
-      "credit": "NASA, ESA, CSA, STScI, J. Lee (STScI), T. Williams (Oxford), PHANGS Team"
-    },
-    "carina": {
-      "name": "Cosmic Cliffs in Carina",
-      "source": "https://esawebb.org/images/weic2205a/",
-      "url": "https://cdn.esawebb.org/archives/images/screen/weic2205a.jpg",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam · 0.90–4.70 μm",
-      "alt": "A jagged wall of gas and dust below a field of stars.",
-      "credit": "NASA, ESA, CSA, and STScI"
-    },
-    "tarantula": {
-      "name": "Tarantula Nebula",
-      "source": "https://esawebb.org/images/weic2212a/",
-      "url": "https://cdn.esawebb.org/archives/images/screen/weic2212a.jpg",
-      "license": "https://creativecommons.org/licenses/by/4.0/",
-      "band": "NIRCam · 0.90–4.70 μm",
-      "alt": "A bright group of young stars surrounded by dusty clouds and cavities.",
-      "credit": "NASA, ESA, CSA, and STScI"
-    }
+    "name": "NGC 4874 in the Coma Cluster",
+    "note": "Find the bright elliptical NGC 4874 at the center of the field. Webb zooms in on that galaxy and its immediate neighbors.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=5989",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw05989-o007_t007_nircam_clear-f356w_i2d.jpg"
   },
-  "targets": {
-    "m51": {
-      "reference": "m51",
-      "note": "Trace the spiral arms from the bright core. Webb picks out thin dust filaments and knots of star formation along the same arms."
+  "m101": {
+    "alt": "Infrared view of a bright knot and curved filaments in the NGC 5462 star-forming region.",
+    "archive": true,
+    "band": "NIRCam F335M · 3.35 μm",
+    "credit": "NASA, ESA, CSA, STScI · JWST program 3429 · MAST",
+    "field": {
+      "corners": [
+        [
+          210.920511,
+          54.351092
+        ],
+        [
+          210.880688,
+          54.323245
+        ],
+        [
+          210.881024,
+          54.320944
+        ],
+        [
+          210.881363,
+          54.318642
+        ],
+        [
+          210.881704,
+          54.31634
+        ],
+        [
+          210.929181,
+          54.29355
+        ],
+        [
+          210.983901,
+          54.330258
+        ],
+        [
+          210.99523,
+          54.338084
+        ],
+        [
+          211.023122,
+          54.357355
+        ],
+        [
+          211.022129,
+          54.364261
+        ],
+        [
+          210.976924,
+          54.387126
+        ],
+        [
+          210.975545,
+          54.387804
+        ]
+      ]
     },
-    "m104": {
-      "reference": "m104",
-      "note": "Look for the dark band across the bright bulge. Webb resolves the outer dust ring into mottled clumps."
+    "name": "NGC 5462 in the Pinwheel Galaxy (M101)",
+    "note": "Webb’s field includes NGC 5462, a star-forming region in one of M101’s spiral arms. The bright arc shows the fine structure inside a small knot in the wider view.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=3429",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw03429-o110_t002_nircam_clear-f335m_i2d.jpg"
+  },
+  "m104": {
+    "alt": "The Sombrero Galaxy with a bright bulge and a dark, clumpy ring tilted across it.",
+    "band": "NIRCam · 0.90–4.44 μm",
+    "credit": "NASA, ESA, CSA, STScI",
+    "name": "Sombrero Galaxy",
+    "note": "Look for the dark band across the bright bulge. Webb resolves the outer dust ring into mottled clumps.",
+    "source": "https://science.nasa.gov/asset/webb/sombrero-galaxy-nircam/",
+    "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2025/06/STScI-01JWC17WKB372KQ7BM0KYZS0J5.png?fit=clip&h=1867&w=2000"
+  },
+  "m31": {
+    "alt": "Two infrared detector fields filled with faint, closely spaced stars in Andromeda’s disk.",
+    "archive": true,
+    "band": "NIRCam F356W · 3.56 μm",
+    "credit": "NASA, ESA, CSA, STScI · JWST program 4735 · MAST",
+    "field": {
+      "corners": [
+        [
+          10.984488,
+          41.475915
+        ],
+        [
+          10.984485,
+          41.47591
+        ],
+        [
+          10.984498,
+          41.475752
+        ],
+        [
+          11.016171,
+          41.433279
+        ],
+        [
+          11.017927,
+          41.431003
+        ],
+        [
+          11.039875,
+          41.402596
+        ],
+        [
+          11.039894,
+          41.402591
+        ],
+        [
+          11.080575,
+          41.41967
+        ],
+        [
+          11.081691,
+          41.420153
+        ],
+        [
+          11.081667,
+          41.420308
+        ],
+        [
+          11.050092,
+          41.462949
+        ],
+        [
+          11.025653,
+          41.494247
+        ]
+      ]
     },
-    "m82": {
-      "reference": "m82",
-      "note": "Start with the bright edge-on disk. In Webb’s image, plumes of gas and dust branch away from both sides."
+    "name": "Andromeda Galaxy (M31) · disk field",
+    "note": "Webb resolves stars in a small patch of Andromeda’s disk. Use the outline to locate the field in the wider image.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=4735",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw04735-o001_t012_nircam_clear-f356w_i2d.jpg"
+  },
+  "m33": {
+    "alt": "A star-forming region with red, filamentary clouds around a blue cavity.",
+    "band": "NIRCam · 0.90–4.70 μm",
+    "credit": "NASA, ESA, CSA, STScI",
+    "field": {
+      "arcminutes": [
+        1.83,
+        1.51
+      ],
+      "center": [
+        23.64091667,
+        30.78364722
+      ],
+      "north_left": -73.2
     },
-    "m42": {
-      "reference": "m42",
-      "note": "Webb zooms in on the Orion Bar near the Trapezium. Look for the bright ridge where ultraviolet light from young stars meets dense gas."
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "name": "NGC 604 in the Triangulum Galaxy",
+    "note": "Webb zooms into NGC 604, a stellar nursery in the Triangulum Galaxy. Look for the cavities carved by its young stars.",
+    "region": true,
+    "source": "https://esawebb.org/images/weic2407d/",
+    "url": "https://cdn.esawebb.org/archives/images/screen/weic2407d.jpg"
+  },
+  "m42": {
+    "alt": "Close-up of the Orion Bar with a bright diagonal ridge and two brilliant stars.",
+    "band": "NIRCam · 1.40–4.80 μm",
+    "credit": "ESA/Webb, NASA, CSA, M. Zamani (ESA/Webb), the PDRs4All ERS Team",
+    "field": {
+      "arcminutes": [
+        2.08,
+        2.31
+      ],
+      "center": [
+        83.84279167,
+        -5.40823056
+      ],
+      "north_left": 95.0
     },
-    "m33": {
-      "reference": "ngc604",
-      "note": "Webb zooms into NGC 604, a stellar nursery in the Triangulum Galaxy. Look for the cavities carved by its young stars."
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "name": "Orion Bar",
+    "note": "Webb zooms in on the Orion Bar near the Trapezium. Look for the bright ridge where ultraviolet light from young stars meets dense gas.",
+    "region": true,
+    "source": "https://esawebb.org/images/weic2315b/",
+    "url": "https://cdn.esawebb.org/archives/images/screen/weic2315b.jpg"
+  },
+  "m51": {
+    "alt": "The Whirlpool Galaxy with a bright core and reddish dust tracing the spiral arms.",
+    "band": "NIRCam · 1.15–4.44 μm",
+    "credit": "ESA/Webb, NASA & CSA, A. Adamo (Stockholm University) and the FEAST JWST team",
+    "field": {
+      "arcminutes": [
+        5.86,
+        2.2
+      ],
+      "center": [
+        202.46745833,
+        47.20007778
+      ],
+      "north_left": 49.2
     },
-    "ngc2392": {
-      "reference": "lion",
-      "note": "My wide capture shows the nebula as a tiny disk. Webb resolves the white dwarf and the rings and dust clumps around it."
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "name": "Whirlpool Galaxy",
+    "note": "Trace the spiral arms from the bright core. Webb picks out thin dust filaments and knots of star formation along the same arms.",
+    "source": "https://esawebb.org/images/potm2308b/",
+    "url": "https://cdn.esawebb.org/archives/images/publicationjpg/potm2308b.jpg"
+  },
+  "m81": {
+    "alt": "Infrared view of a patch of M81’s inner disk with fine filaments and a bright edge.",
+    "archive": true,
+    "band": "MIRI F770W · 7.7 μm",
+    "credit": "NASA, ESA, CSA, STScI · JWST program 2016 · MAST",
+    "field": {
+      "corners": [
+        [
+          148.826635,
+          69.08597
+        ],
+        [
+          148.756803,
+          69.066395
+        ],
+        [
+          148.757238,
+          69.066172
+        ],
+        [
+          148.811211,
+          69.041583
+        ],
+        [
+          148.835176,
+          69.048247
+        ],
+        [
+          148.880683,
+          69.060945
+        ],
+        [
+          148.880252,
+          69.061167
+        ],
+        [
+          148.832844,
+          69.083217
+        ],
+        [
+          148.826778,
+          69.086003
+        ]
+      ]
     },
-    "m81": {
-      "reference": "m51",
-      "similar": true,
-      "note": "Compare how the spiral arms wind outward from a bright core. Webb’s example is the Whirlpool Galaxy."
+    "name": "Bode’s Galaxy (M81) · inner disk",
+    "note": "Webb’s field covers a small part of M81’s inner disk, beside the bright core. Look for the fine, bright streaks of dust.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=2016",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw02016-o017_t017_miri_f770w_i2d.jpg"
+  },
+  "m82": {
+    "alt": "The Cigar Galaxy with a bright edge-on disk and warm-colored plumes above and below it.",
+    "band": "NIRCam · 1.15–4.44 μm",
+    "credit": "NASA, ESA, CSA, Adam Smercina (STScI, Tufts), Thomas Williams (University of Manchester); Image Processing: Alyssa Pagan (STScI)",
+    "name": "Cigar Galaxy",
+    "note": "Start with the bright edge-on disk. In Webb’s image, plumes of gas and dust branch away from both sides.",
+    "source": "https://science.nasa.gov/asset/webb/m82-cigar-galaxy-nircam-image/",
+    "url": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/webb/science/2026/06/STScI-01KM3RWWTEHPFZG9QEKE4FZM25.png?w=2000"
+  },
+  "ngc2392": {
+    "alt": "A round planetary nebula with a white dwarf inside nested pink and purple shells.",
+    "band": "NIRCam + MIRI · 1.15–10 μm",
+    "credit": "NASA, ESA, CSA, STScI. Image Processing: A. Pagan (STScI).",
+    "field": {
+      "arcminutes": [
+        1.77,
+        1.77
+      ],
+      "center": [
+        112.29504167,
+        20.91214444
+      ],
+      "north_left": 170.0
     },
-    "m63": {
-      "reference": "ngc628",
-      "similar": true,
-      "note": "Compare the Sunflower’s patchy spiral with the Phantom Galaxy’s more continuous arms."
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "name": "Lion Nebula (NGC 2392)",
+    "note": "My wide capture shows the nebula as a tiny disk. Webb resolves the white dwarf and the rings and dust clumps around it.",
+    "source": "https://esawebb.org/images/weic2616a/",
+    "url": "https://cdn.esawebb.org/archives/images/screen/weic2616a.jpg"
+  },
+  "ngc2403": {
+    "alt": "Two infrared detector fields showing individual stars in the outskirts of NGC 2403.",
+    "archive": true,
+    "band": "NIRCam F356W · 3.56 μm",
+    "credit": "NASA, ESA, CSA, STScI · JWST program 1638 · MAST",
+    "field": {
+      "corners": [
+        [
+          114.522174,
+          65.532275
+        ],
+        [
+          114.522198,
+          65.53215
+        ],
+        [
+          114.604598,
+          65.524294
+        ],
+        [
+          114.606725,
+          65.524103
+        ],
+        [
+          114.607015,
+          65.5241
+        ],
+        [
+          114.633949,
+          65.571579
+        ],
+        [
+          114.652131,
+          65.607051
+        ],
+        [
+          114.652106,
+          65.607177
+        ],
+        [
+          114.566987,
+          65.614359
+        ],
+        [
+          114.566689,
+          65.61435
+        ],
+        [
+          114.540152,
+          65.566943
+        ],
+        [
+          114.537074,
+          65.561042
+        ]
+      ]
     },
-    "m101": {
-      "reference": "ngc628",
-      "similar": true,
-      "note": "These face-on spirals make it easy to follow their arms from the core out toward the star-forming regions."
+    "name": "NGC 2403 · outer disk",
+    "note": "This Webb pointing samples the outskirts of NGC 2403. The blue outline marks the part of the galaxy where Webb resolves individual stars.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=1638",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw01638-o001_t001_nircam_clear-f356w_i2d.jpg"
+  },
+  "ngc2903": {
+    "alt": "Infrared view of NGC 2903 with a bright elongated center and two curved, knotty spiral arms.",
+    "archive": true,
+    "band": "MIRI F770W · 7.7 μm",
+    "credit": "NASA, ESA, CSA, STScI · JWST program 3707 · MAST",
+    "field": {
+      "corners": [
+        [
+          143.021031,
+          21.453549
+        ],
+        [
+          143.052049,
+          21.441516
+        ],
+        [
+          143.067693,
+          21.475547
+        ],
+        [
+          143.075503,
+          21.492569
+        ],
+        [
+          143.077633,
+          21.497272
+        ],
+        [
+          143.088555,
+          21.521539
+        ],
+        [
+          143.089718,
+          21.52531
+        ],
+        [
+          143.086429,
+          21.527339
+        ],
+        [
+          143.055474,
+          21.539684
+        ],
+        [
+          143.032516,
+          21.548814
+        ],
+        [
+          143.027503,
+          21.550778
+        ],
+        [
+          143.02508,
+          21.546956
+        ],
+        [
+          143.009437,
+          21.512923
+        ],
+        [
+          143.00162,
+          21.495905
+        ],
+        [
+          142.988529,
+          21.466636
+        ],
+        [
+          142.993094,
+          21.464664
+        ]
+      ]
     },
-    "ngc2403": {
-      "reference": "ngc628",
-      "similar": true,
-      "note": "Look for clumps of star formation tracing the spiral pattern in both galaxies."
+    "name": "NGC 2903 · bar and inner arms",
+    "note": "Start at the central bar and follow it into the inner spiral arms. Webb’s mid-infrared image makes the dusty structure along those arms easy to pick out.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=3707",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw03707-o029_t017_miri_f770w_i2d.jpg"
+  },
+  "ngc891": {
+    "alt": "Close infrared view of NGC 891’s central disk, a thin diagonal band with a bright center.",
+    "archive": true,
+    "band": "NIRCam F335M · 3.35 μm",
+    "credit": "NASA, ESA, CSA, STScI · JWST program 5627 · MAST",
+    "field": {
+      "corners": [
+        [
+          35.614587,
+          42.372436
+        ],
+        [
+          35.608957,
+          42.336353
+        ],
+        [
+          35.610911,
+          42.334552
+        ],
+        [
+          35.659638,
+          42.331013
+        ],
+        [
+          35.659694,
+          42.331069
+        ],
+        [
+          35.660245,
+          42.334742
+        ],
+        [
+          35.66487,
+          42.366315
+        ],
+        [
+          35.662922,
+          42.368121
+        ],
+        [
+          35.614696,
+          42.372491
+        ],
+        [
+          35.61466,
+          42.372494
+        ]
+      ]
     },
-    "ngc2903": {
-      "reference": "ngc1365",
-      "similar": true,
-      "note": "Follow the elongated central bar and look where the spiral arms begin at its ends."
+    "name": "NGC 891 · central disk",
+    "note": "Compare the narrow, edge-on disk in my capture with Webb’s close-up. The same central strip is dotted with infrared-bright knots.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=5627",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw05627-o007_t003_nircam_clear-f335m_i2d.jpg"
+  },
+  "rosette": {
+    "alt": "Infrared view of the central star cluster inside the Rosette Nebula.",
+    "archive": true,
+    "band": "NIRCam F335M · 3.35 μm",
+    "credit": "NASA, ESA, CSA, STScI · JWST program 4545 · MAST",
+    "field": {
+      "corners": [
+        [
+          97.957521,
+          4.848453
+        ],
+        [
+          97.962945,
+          4.844103
+        ],
+        [
+          97.998603,
+          4.8481
+        ],
+        [
+          98.034342,
+          4.852407
+        ],
+        [
+          98.029779,
+          4.900841
+        ],
+        [
+          98.026053,
+          4.936627
+        ],
+        [
+          98.025815,
+          4.938801
+        ],
+        [
+          98.022167,
+          4.971868
+        ],
+        [
+          98.020362,
+          4.973314
+        ],
+        [
+          98.016747,
+          4.976206
+        ],
+        [
+          97.982019,
+          4.972908
+        ],
+        [
+          97.980853,
+          4.972781
+        ],
+        [
+          97.945195,
+          4.968808
+        ],
+        [
+          97.949672,
+          4.920258
+        ],
+        [
+          97.953388,
+          4.884474
+        ]
+      ]
     },
-    "ngc891": {
-      "reference": "m104",
-      "similar": true,
-      "note": "Both galaxies show a dust lane across a nearly edge-on disk. The Sombrero has a much larger central bulge."
-    },
-    "m97": {
-      "reference": "lion",
-      "similar": true,
-      "note": "Both are planetary nebulae. Compare the Owl’s round shell with the rings Webb resolves around the Lion’s central star."
-    },
-    "heart": {
-      "reference": "tarantula",
-      "similar": true,
-      "note": "Compare the dark cavities and bright gas around groups of young stars."
-    },
-    "soul": {
-      "reference": "tarantula",
-      "similar": true,
-      "note": "Look at where glowing gas rims the cavities excavated by young stars."
-    },
-    "rosette": {
-      "reference": "tarantula",
-      "similar": true,
-      "note": "Compare the central cavity and the dusty gas sculpted by the stars around it."
-    },
-    "california": {
-      "reference": "carina",
-      "similar": true,
-      "note": "Follow the boundary where bright ionized gas meets darker clouds. Webb’s example resolves that edge in Carina."
-    },
-    "flaming-star": {
-      "reference": "carina",
-      "similar": true,
-      "note": "Compare the bright folds where starlight meets dense clouds. Webb’s infrared view shows fine structure along the ridge."
-    }
+    "name": "NGC 2244 in the Rosette Nebula",
+    "note": "Webb images the young cluster NGC 2244 at the center of the Rosette. The wide capture places those stars inside the nebula’s cavity.",
+    "region": true,
+    "source": "https://www.stsci.edu/jwst/science-execution/program-information?id=4545",
+    "url": "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product/jw04545-o001_t001_nircam_clear-f335m_i2d.jpg"
   }
 }
